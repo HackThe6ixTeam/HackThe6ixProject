@@ -75,7 +75,7 @@ export function DataTable({ columns, data }) {
                       className={`${cellClass} ${cellStyle}`}
                     >
                       {cell.column.id === 'job' ? (
-                        <Link href={`/job/${row.original.id}`} className="text-blue-500 hover:underline">
+                        <Link href={`/jobs/${row.original.id}`} className="text-blue-500 hover:underline">
                           {value}
                         </Link>
                       ) : (
