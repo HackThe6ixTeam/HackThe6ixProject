@@ -8,12 +8,15 @@ import os
 import google.generativeai as genai
 from fastapi.middleware.cors import CORSMiddleware
 import tempfile
-from beanie import Document, Indexed, init_beanie, Link
+from beanie import Document, Indexed, init_beanie, Link, PydanticObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 import asyncio
 from dotenv import load_dotenv
 from typing import List, Optional
+import httpx
+from bson import ObjectId
+from bson.errors import InvalidId
 
 load_dotenv()
 
@@ -25,7 +28,6 @@ async def lifespan(app: FastAPI):
     
     yield  # This is where the FastAPI app runs
     
-    # Shutdown: Close the database connection
     client.close()
 
 
@@ -190,7 +192,72 @@ async def clone_and_process(repo_url: str):
         # raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/begin-processing")
-async def begin_processing(request: Request):
-    print("Beginning processing")
-    return {"message": "Processing started in the background."}
+@app.get("/begin-processing/{user_id}/{job_id}")
+async def begin_processing(user_id: str, job_id: str):
+    try:
+        # Convert the string user_id and job_id to ObjectId
+        user_object_id = ObjectId(user_id)
+        job_object_id = ObjectId(job_id)
+        
+        # Fetch the user from the database
+        user = await User.get(user_object_id)
+
+        if not user or not user.github_token:
+            raise HTTPException(status_code=404, detail="User not found or GitHub token missing")
+
+        # Fetch the job from the database
+        job = await Job.get(job_object_id)
+
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        # Make a request to the GitHub API
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                'https://api.github.com/user/repos',
+                headers={
+                    'Authorization': f'Bearer {user.github_token}',
+                    'Accept': 'application/vnd.github.v3+json'
+                },
+                params={
+                    'type': 'all',
+                    'sort': 'full_name',
+                    'per_page': 100
+                }
+            )
+
+        if response.status_code == 401:
+            raise HTTPException(status_code=401, detail="GitHub authentication failed. Token may be invalid.")
+
+        response.raise_for_status()
+
+        # Extract repository information from the GitHub API response
+        repos = [
+            {
+                "name": repo["name"],
+                "private": repo["private"],
+                "description": repo["description"],
+                "url": repo["html_url"]
+            }
+            for repo in response.json()
+        ]
+
+        # Here you can add logic to process the repositories in the context of the job
+        # For now, we're just returning the repositories
+
+        return {"user_id": str(user_object_id), "job_id": str(job_object_id), "repositories": repos}
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid user ID or job ID format")
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        print(f"Error processing repositories: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+# @app.post("/begin-processing")
+# async def begin_processing(request: Request):
+#     print("Beginning processing")
+#     return {"message": "Processing started in the background."}
