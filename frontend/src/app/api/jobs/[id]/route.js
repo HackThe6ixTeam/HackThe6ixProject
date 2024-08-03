@@ -19,7 +19,6 @@ export async function GET(req, { params }) {
     // Mock job data with applicants and resumes
     const jobs = [
       {
-        id: 'b1e8f4e0-0b2c-4f2d-a0d4-9d4d9d62dfbb',
         job: 'Software Engineer',
         type: 'FULL_TIME',
         created: '2024-01-15',
@@ -58,7 +57,6 @@ export async function GET(req, { params }) {
         status: 'open',
       },
       {
-        id: 'f9aebd89-dae4-4c3e-9e5b-4e10a71a2487',
         job: 'Data Scientist',
         type: 'FULL_TIME',
         created: '2024-02-20',
@@ -94,7 +92,6 @@ export async function GET(req, { params }) {
         status: 'in_review',
       },
       {
-        id: 'c6d7485e-9c3d-4c0a-a27f-15b8c8b134ed',
         job: 'Product Manager',
         type: 'PART_TIME',
         created: '2024-03-05',
@@ -128,7 +125,6 @@ export async function GET(req, { params }) {
         status: 'closed',
       },
       {
-        id: '8f6a7f8d-d5e9-4a95-9d58-2bfb2f7d23ed',
         job: 'UX Designer',
         type: 'FULL_TIME',
         created: '2024-04-12',
@@ -162,7 +158,6 @@ export async function GET(req, { params }) {
         status: 'open',
       },
       {
-        id: 'af5c9824-4f6c-4b6b-9100-36d6d8c8b89e',
         job: 'Marketing Specialist',
         type: 'INTERNSHIP',
         created: '2024-05-18',
@@ -196,7 +191,6 @@ export async function GET(req, { params }) {
         status: 'in_review',
       },
       {
-        id: '2b00a4d5-85d7-4f57-a9c0-22e3e0b6c8a1',
         job: 'DevOps Engineer',
         type: 'FULL_TIME',
         created: '2024-06-22',
@@ -230,7 +224,6 @@ export async function GET(req, { params }) {
         status: 'open',
       },
       {
-        id: '5a1e6f2b-8293-4f57-a9c0-22e3e0b6c8a1',
         job: 'Cybersecurity Analyst',
         type: 'PART_TIME',
         created: '2024-07-30',
