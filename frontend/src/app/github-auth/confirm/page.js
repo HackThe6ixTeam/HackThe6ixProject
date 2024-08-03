@@ -37,8 +37,12 @@ const Page = () => {
                 console.log('jobId', jobId);
 
                 // Trigger the begin-processing endpoint
-                const processingResponse = await fetch(`https://hackthe6ixproject-djaqetkl4a-uc.a.run.app/begin-processing/${userId}/${jobId}`, {
-                    method: 'GET',
+                const processingResponse = await fetch('https://hackthe6ixproject-djaqetkl4a-uc.a.run.app/begin-processing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ userId, jobId }),
                 });
 
                 if (!processingResponse.ok) {

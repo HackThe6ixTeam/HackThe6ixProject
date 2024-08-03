@@ -4,8 +4,25 @@
 import { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 
+const getUserById = async (id) => {
+  try {
+    const res = await fetch(`http://localhost:3000/api/user/${id}`, {
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to fetch topic");
+    }
+
+    return res.json();
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export default function JobDetail({ params }) {
   const { id } = params;
+  console.log(id);
   const [job, setJob] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
 
@@ -17,7 +34,11 @@ export default function JobDetail({ params }) {
           throw new Error('Job not found');
         }
         const data = await response.json();
+        console.log(data);
         setJob(data);
+
+        const userData = await getUserById(data.applicants[0]);
+        console.log(userData);
       } catch (error) {
         notFound();
       }
