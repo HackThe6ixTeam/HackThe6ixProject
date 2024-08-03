@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel
 from git import Repo
 from pathlib import Path
@@ -63,11 +63,15 @@ async def run(prompt: str) -> str:
     return response.text
 
 @app.post("/cloneAndProcess")
-async def clone_and_process(request: Request):
+async def processor(request: Request, background_tasks: BackgroundTasks):
+    body = await request.json()
+    repo_url = body['repoUrl']
+    background_tasks.add_task(clone_and_process, repo_url)
+    return {"message": "Cloning and processing started in the background."}
+
+
+async def clone_and_process(repo_url: str):
     try:
-        body = await request.json()
-        repo_url = body['repoUrl']
-        
         # Create a unique temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_dir = Path(temp_dir) / 'tempRepo'
@@ -88,8 +92,8 @@ async def clone_and_process(request: Request):
 
             print(result)
 
-        return {"success": True, "combinedContent": combined_content}
+        print({"success": True, "combinedContent": combined_content})
 
     except Exception as e:
         print(e)
-        raise HTTPException(status_code=500, detail=str(e))
+        # raise HTTPException(status_code=500, detail=str(e))
