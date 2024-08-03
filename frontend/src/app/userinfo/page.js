@@ -50,7 +50,11 @@ const UserInfo = () => {
     const userInfo = { 
       devpost, 
       github, 
+<<<<<<< Updated upstream
       github_token: ' ',
+=======
+      github_token: 'temp',
+>>>>>>> Stashed changes
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText
@@ -93,7 +97,7 @@ const UserInfo = () => {
 
   return (
     <div>
-      <main className="flex flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10 text-left">
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 text-left">
         <div className="mx-auto grid w-full max-w-3xl">
           <p className="text-base font-semibold leading-7 text-primary"></p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Upload your resume</h1>
@@ -176,50 +180,6 @@ const UserInfo = () => {
           </Button>
         </form>
       </main>
-      <h1>User Information</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="devpost">Devpost:</label>
-          <input
-            type="url"
-            id="devpost"
-            value={devpost}
-            onChange={(e) => setDevpost(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="github">GitHub:</label>
-          <input
-            type="url"
-            id="github"
-            value={github}
-            onChange={(e) => setGithub(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="linkedin">LinkedIn:</label>
-          <input
-            type="url"
-            id="linkedin"
-            value={linkedin}
-            onChange={(e) => setLinkedin(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="resume">Resume (PDF):</label>
-          <input
-            type="file"
-            id="resume"
-            accept=".pdf"
-            onChange={handleFileChange}
-            required
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
     </div>
   );
 };
