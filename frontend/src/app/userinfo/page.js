@@ -53,7 +53,10 @@ const UserInfo = () => {
       github_token: 'temp',
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
-      resumeText
+      resumeText,
+      jobs: [
+        "b1e8f4e0-0b2c-4f2d-a0d4-9d4d9d62dfbb"
+      ]
     };
 
     console.log(userInfo);
