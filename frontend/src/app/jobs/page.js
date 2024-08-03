@@ -51,12 +51,12 @@ export default function DemoPage() {
     <div className="container mx-auto py-10">
       {/* Header Container */}
       <div className="flex items-center justify-between mb-4">
-        {/* Tile/Header */}
+        {/* Title/Header */}
         <h1 className="text-2xl font-bold">Jobs</h1>
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={jobs} />
     </div>
   );
 }
