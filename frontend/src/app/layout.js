@@ -20,7 +20,9 @@ export default function RootLayout({ children }) {
               <NavBarButtons />
             </nav>
           </header>
-          {children}
+          <main>
+            {children}
+          </main>
         </body>
       </UserProvider>
     </html>
