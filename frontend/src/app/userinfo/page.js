@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import pdfToText from 'react-pdftotext';
 import { useUser } from '@auth0/nextjs-auth0/client'; // Ensure correct import for client
 
-const UserInfo = ({ user }) => {
+const UserInfo = () => {
+  const { user, error, isLoading } = useUser();
+
   const [devpost, setDevpost] = useState('');
   const [github, setGithub] = useState('');
   const [linkedin, setLinkedin] = useState('');
@@ -16,16 +18,16 @@ const UserInfo = ({ user }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    let text;
+
     if (resume) {
       try {
-        const text = await pdfToText(resume);
+        text = await pdfToText(resume);
         
         // Convert text to a file and trigger download
         const blob = new Blob([text], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.click();
         URL.revokeObjectURL(url);
 
         // Save text to state or handle as needed
@@ -37,12 +39,25 @@ const UserInfo = ({ user }) => {
     }
 
     // Log user info
-    console.log({ 
+    const userInfo = { 
       devpost, 
       github, 
       linkedin, 
-      user: user ? { name: user.name, email: user.email } : 'No user info available'
+      user: user ? { name: user.name, email: user.email } : 'No user info available',
+      resumeText: text
+    }
+
+    console.log(userInfo);
+
+    const res = await fetch("/api/user", {
+      method: "POST",
+      body: JSON.stringify({ userInfo }),
+      //@ts-ignore
+      "Content-Type": "application/json",
     });
+    if (!res.ok) {
+      throw new Error("Failed to create ticket");
+    }
 
     // Redirect to /finished page
     router.push('/finished');

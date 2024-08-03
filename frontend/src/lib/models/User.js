@@ -1,13 +1,16 @@
 // src/lib/models/User.js
 
-import mongoose from 'mongoose';
+import mongoose, { Schema } from "mongoose";
+
+mongoose.connect(process.env.MONGODB_URI);
+mongoose.Promise = global.Promise;
 
 const userSchema = new mongoose.Schema({
-  email: { type: String, required: true },
   devpost: { type: String, required: true },
   github: { type: String, required: true },
   linkedin: { type: String, required: true },
-  resumeFileId: { type: mongoose.Schema.Types.ObjectId, ref: 'uploads' },
+  user: { type: Object, required: true },
+  resumeText: { type: String, required: true },
 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
