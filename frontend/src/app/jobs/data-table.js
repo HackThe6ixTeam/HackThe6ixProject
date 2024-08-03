@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 
 import { flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -20,8 +20,6 @@ export function DataTable({ columns, data }) {
         return "bg-red-200 text-red-800";
       case "in_review":
         return "bg-yellow-200 text-yellow-800";
-      default:
-        return "bg-gray-200 text-gray-800"; // Fallback for unknown status
     }
   };
 
@@ -32,7 +30,10 @@ export function DataTable({ columns, data }) {
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
+                <TableHead
+                  key={header.id}
+                  className={`text-center bg-gray-800 text-white ${header.column.id === 'job' ? 'text-left pl-4' : ''}`}
+                >
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -52,17 +53,26 @@ export function DataTable({ columns, data }) {
                 data-state={row.getIsSelected() && "selected"}
               >
                 {row.getVisibleCells().map((cell) => {
-                  const value = flexRender(cell.column.columnDef.cell, cell.getContext());
-                  const cellClass = cell.column.id === 'status' 
-                    ? getStatusColor(value) 
-                    : cell.column.id === 'type' 
-                    ? `bg-green-200 text-green-800` 
+                  const cellContext = cell.getContext();
+                  const cellValue = flexRender(cell.column.columnDef.cell, cellContext);
+
+                  // Extract the value if it's an object
+                  const value = typeof cellValue === 'object' ? cellValue?.value || cellValue : cellValue;
+
+                  // Determine the class for the status column
+                  const cellClass = cell.column.id === 'status'
+                    ? getStatusColor(value)
                     : '';
+
+                  // Apply specific styling for the job column to reduce its size
+                  const cellStyle = cell.column.id === 'job'
+                    ? 'text-left pl-4 w-1/4' // Adjust width here
+                    : 'text-center';
 
                   return (
                     <TableCell
                       key={cell.id}
-                      className={cellClass}
+                      className={`${cellClass} ${cellStyle}`}
                     >
                       {cell.column.id === 'job' ? (
                         <Link href={`/job/${row.original.id}`} className="text-blue-500 hover:underline">
