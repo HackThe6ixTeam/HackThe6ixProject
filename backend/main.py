@@ -206,13 +206,19 @@ async def create_repository_document(user_id: str, job_id: str, repo_url: str):
         raise
 
 
+class ProcessingRequest(BaseModel):
+    user_id: str
+    job_id: str
 
-@app.get("/begin-processing/{user_id}/{job_id}")
-async def begin_processing(user_id: str, job_id: str, background_tasks: BackgroundTasks):
+
+@app.post("/begin-processing")
+async def begin_processing(request: ProcessingRequest, background_tasks: BackgroundTasks):
     try:
         # Convert the string user_id and job_id to ObjectId
-        user_object_id = ObjectId(user_id)
-        job_object_id = ObjectId(job_id)
+        user_object_id = ObjectId(request.user_id)
+        job_object_id = ObjectId(request.job_id)
+
+        print(user_object_id, job_object_id)
         
         # Fetch the user from the database
         user = await User.get(user_object_id)
@@ -260,7 +266,7 @@ async def begin_processing(user_id: str, job_id: str, background_tasks: Backgrou
         if repos:
             # Process only the first repository in the background
             first_repo = repos[0]
-            background_tasks.add_task(create_repository_document, str(user_object_id), str(job_object_id), first_repo["url"])
+            background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
 
         return {"message": "Processing started for the first repository", "total_repos": len(repos)}
 
