@@ -50,11 +50,7 @@ const UserInfo = () => {
     const userInfo = { 
       devpost, 
       github, 
-<<<<<<< Updated upstream
-      github_token: ' ',
-=======
       github_token: 'temp',
->>>>>>> Stashed changes
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText

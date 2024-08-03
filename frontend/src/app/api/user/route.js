@@ -5,7 +5,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
     console.log('body', body);
-    const userData = body;
+    const userData = body.userInfo;
 
     // Create the user and capture the result
     const newUser = await User.create(userData);
