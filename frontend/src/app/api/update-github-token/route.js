@@ -20,7 +20,7 @@ export async function POST(req) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
-        return NextResponse.json({ message: 'Github token updated successfully' }, { status: 200 });
+        return NextResponse.json({ message: 'Github token updated successfully', jobId: updatedUser.jobs[0] }, { status: 200 }); // Assuming user has only one job
     } catch (error) {
         console.error('Error updating Github token:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

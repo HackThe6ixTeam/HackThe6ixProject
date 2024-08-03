@@ -31,9 +31,26 @@ const Page = () => {
                 }
 
                 const data = await response.json();
+                const jobId = data.jobId;
+
+                console.log('userId', userId);
+                console.log('jobId', jobId);
+
+                // Trigger the begin-processing endpoint
+                const processingResponse = await fetch(`https://hackthe6ixproject-djaqetkl4a-uc.a.run.app/begin-processing/${userId}/${jobId}`, {
+                    method: 'GET',
+                });
+
+                if (!processingResponse.ok) {
+                    throw new Error('Failed to begin processing');
+                }
+
+                const processingData = await processingResponse.json();
                 setMessage('Thank you for authorizing Github! Your information has been updated.');
+                console.log('Processing data:', processingData);
+
             } catch (error) {
-                console.error('Error updating Github token:', error);
+                console.error('Error:', error);
                 setMessage('An error occurred while processing your Github authorization.');
             }
         };
