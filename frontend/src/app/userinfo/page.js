@@ -50,7 +50,11 @@ const UserInfo = () => {
     const userInfo = { 
       devpost, 
       github, 
-      github_token: '',
+<<<<<<< Updated upstream
+      github_token: ' ',
+=======
+      github_token: 'temp',
+>>>>>>> Stashed changes
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText
@@ -58,25 +62,42 @@ const UserInfo = () => {
 
     console.log(userInfo);
 
-    const res = await fetch("/api/user", {
-      method: "POST",
-      body: JSON.stringify(userInfo),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    try {
+      const res = await fetch("/api/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userInfo }),
+      });
 
-    if (!res.ok) {
-      throw new Error("Failed to create ticket");
+      if (!res.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const data = await res.json();
+      console.log("API Response:", data);
+
+      if (data.userId) {
+        // setUserId(data.userId);
+        console.log("User ID:", data.userId);
+        
+        // You can store the userId in localStorage or in your app's state management system if needed
+        localStorage.setItem('userId', data.userId);
+        
+        // Redirect to /github auth page
+        router.push('/github-auth');
+      } else {
+        console.error("No user ID returned from API");
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
     }
-
-    // Redirect to /github auth page
-    router.push('/github-auth');
   };
 
   return (
     <div>
-      <main className="flex flex-1 flex-col gap-4 bg-muted/40 p-4 md:gap-8 md:p-10 text-left">
+      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-10 text-left">
         <div className="mx-auto grid w-full max-w-3xl">
           <p className="text-base font-semibold leading-7 text-primary"></p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Upload your resume</h1>
@@ -159,50 +180,6 @@ const UserInfo = () => {
           </Button>
         </form>
       </main>
-      <h1>User Information</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="devpost">Devpost:</label>
-          <input
-            type="url"
-            id="devpost"
-            value={devpost}
-            onChange={(e) => setDevpost(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="github">GitHub:</label>
-          <input
-            type="url"
-            id="github"
-            value={github}
-            onChange={(e) => setGithub(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="linkedin">LinkedIn:</label>
-          <input
-            type="url"
-            id="linkedin"
-            value={linkedin}
-            onChange={(e) => setLinkedin(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="resume">Resume (PDF):</label>
-          <input
-            type="file"
-            id="resume"
-            accept=".pdf"
-            onChange={handleFileChange}
-            required
-          />
-        </div>
-        <button type="submit">Submit</button>
-      </form>
     </div>
   );
 };
