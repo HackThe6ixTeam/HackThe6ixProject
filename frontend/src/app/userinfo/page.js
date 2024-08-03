@@ -2,20 +2,47 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import pdfToText from 'react-pdftotext';
+import { useUser } from '@auth0/nextjs-auth0/client'; // Ensure correct import for client
 
-const UserInfo = () => {
+const UserInfo = ({ user }) => {
   const [devpost, setDevpost] = useState('');
   const [github, setGithub] = useState('');
   const [linkedin, setLinkedin] = useState('');
   const [resume, setResume] = useState(null);
-
+  const [resumeText, setResumeText] = useState('');
   const router = useRouter();
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
-    // Handle form submission (e.g., send data to an API or server)
-    console.log({ devpost, github, linkedin, resume });
+    if (resume) {
+      try {
+        const text = await pdfToText(resume);
+        
+        // Convert text to a file and trigger download
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        // Save text to state or handle as needed
+        setResumeText(text);
+        console.log('Resume Text:', text);
+      } catch (error) {
+        console.error('Error extracting text from PDF:', error);
+      }
+    }
+
+    // Log user info
+    console.log({ 
+      devpost, 
+      github, 
+      linkedin, 
+      user: user ? { name: user.name, email: user.email } : 'No user info available'
+    });
 
     // Redirect to /finished page
     router.push('/finished');

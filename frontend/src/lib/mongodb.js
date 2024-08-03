@@ -1,30 +1,16 @@
-// lib/mongodb.js
+// src/lib/mongodb.js
 
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable');
-}
-
-let cachedClient = null;
-let cachedDb = null;
-
-export async function connectToDatabase() {
-  if (cachedDb) {
-    return { client: cachedClient, db: cachedDb };
+const connectToDatabase = async () => {
+  if (mongoose.connection.readyState >= 1) {
+    return mongoose.connection;
   }
 
-  const client = await mongoose.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  const dbUri = process.env.MONGODB_URI; // Ensure this is set correctly
 
-  const db = client.connection;
+  await mongoose.connect(dbUri);
+  return mongoose.connection;
+};
 
-  cachedClient = client;
-  cachedDb = db;
-
-  return { client, db };
-}
+export default connectToDatabase;
