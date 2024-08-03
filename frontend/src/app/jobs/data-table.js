@@ -20,6 +20,8 @@ export function DataTable({ columns, data }) {
         return "bg-red-200 text-red-800";
       case "in_review":
         return "bg-yellow-200 text-yellow-800";
+      default:
+        return "";
     }
   };
 
@@ -75,7 +77,7 @@ export function DataTable({ columns, data }) {
                       className={`${cellClass} ${cellStyle}`}
                     >
                       {cell.column.id === 'job' ? (
-                        <Link href={`/jobs/${row.original.id}`} className="text-blue-500 hover:underline">
+                        <Link href={`/jobs/${row.original._id}`} className="text-blue-500 hover:underline">
                           {value}
                         </Link>
                       ) : (
