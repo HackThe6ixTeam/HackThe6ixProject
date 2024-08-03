@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the backend code
-COPY backend/ .
+COPY backend/ backend/
 
 # Expose the port the app runs on
 # Note: This is optional in Cloud Run but kept for documentation
