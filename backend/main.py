@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from git import Repo
 from pathlib import Path
 import shutil
@@ -79,9 +79,9 @@ class TechCompetence(BaseModel):
     summary: Optional[str] = None
 
 class Repository(Document):
-    user_id: str
-    job_id: str
-    repo_url: str
+    user_id: Link[User]
+    job_id: Link[Job]
+    repo_url: str = Field(default='')
     summary: Optional[str] = None
     ind_file_summaries: List[FileSummary] = []
     skills: List[SkillInfo] = []

@@ -6,6 +6,7 @@ mongoose.Promise = global.Promise;
 const repositorySchema = new mongoose.Schema({
   user_id: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   job_id: { type: Schema.Types.ObjectId, ref: 'Job', required: true },
+  repo_url: { type: String, default: '' },
   summary: { type: String, required: false },
   ind_file_summaries: [
     {
