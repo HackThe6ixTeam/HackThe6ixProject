@@ -10,6 +10,7 @@ export async function GET(req) {
         return NextResponse.json({ error: 'Missing code or state parameter' }, { status: 400 });
     }
 
-    // Process the code and state parameters here
-    return NextResponse.json({ message: 'Parameters received', code, state });
+    // If we have both parameters, redirect to /github-auth/confirm
+    const redirectUrl = `/github-auth/confirm?code=${code}&state=${state}`;
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
 }

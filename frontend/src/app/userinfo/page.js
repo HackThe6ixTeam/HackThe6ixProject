@@ -17,7 +17,6 @@ const UserInfo = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     let text;
 
     if (resume) {
@@ -42,7 +41,7 @@ const UserInfo = () => {
     const userInfo = { 
       devpost, 
       github, 
-      github_token: '',
+      github_token: ' ',
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText: text
@@ -50,18 +49,37 @@ const UserInfo = () => {
 
     console.log(userInfo);
 
-    const res = await fetch("/api/user", {
-      method: "POST",
-      body: JSON.stringify({ userInfo }),
-      //@ts-ignore
-      "Content-Type": "application/json",
-    });
-    if (!res.ok) {
-      throw new Error("Failed to create ticket");
-    }
+    try {
+      const res = await fetch("/api/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userInfo }),
+      });
 
-    // Redirect to /github auth page
-    router.push('/github-auth');
+      if (!res.ok) {
+        throw new Error("Failed to create user");
+      }
+
+      const data = await res.json();
+      console.log("API Response:", data);
+
+      if (data.userId) {
+        // setUserId(data.userId);
+        console.log("User ID:", data.userId);
+        
+        // You can store the userId in localStorage or in your app's state management system if needed
+        localStorage.setItem('userId', data.userId);
+        
+        // Redirect to /github auth page
+        router.push('/github-auth');
+      } else {
+        console.error("No user ID returned from API");
+      }
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
   };
 
   return (
