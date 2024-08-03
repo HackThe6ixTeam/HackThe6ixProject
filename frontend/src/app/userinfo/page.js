@@ -42,6 +42,7 @@ const UserInfo = () => {
     const userInfo = { 
       devpost, 
       github, 
+      github_token: '',
       linkedin, 
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText: text
@@ -59,8 +60,8 @@ const UserInfo = () => {
       throw new Error("Failed to create ticket");
     }
 
-    // Redirect to /finished page
-    router.push('/finished');
+    // Redirect to /github auth page
+    router.push('/github-auth');
   };
 
   return (

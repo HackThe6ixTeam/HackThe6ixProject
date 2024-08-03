@@ -8,6 +8,7 @@ mongoose.Promise = global.Promise;
 const userSchema = new mongoose.Schema({
   devpost: { type: String, required: true },
   github: { type: String, required: true },
+  github_token: { type: String, required: true },
   linkedin: { type: String, required: true },
   user: { type: Object, required: true },
   resumeText: { type: String, required: true },
