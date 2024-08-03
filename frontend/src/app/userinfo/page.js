@@ -55,7 +55,7 @@ const UserInfo = () => {
       user: user ? { name: user.name, email: user.email } : 'No user info available',
       resumeText,
       jobs: [
-        "b1e8f4e0-0b2c-4f2d-a0d4-9d4d9d62dfbb"
+        "66ae0f6b119d1e61cad2ab62"
       ]
     };
 
