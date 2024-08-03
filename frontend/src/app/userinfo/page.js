@@ -5,7 +5,9 @@ import { useRouter } from 'next/navigation';
 import pdfToText from 'react-pdftotext';
 import { useUser } from '@auth0/nextjs-auth0/client'; // Ensure correct import for client
 
-const UserInfo = ({ user }) => {
+const UserInfo = () => {
+  const { user, error, isLoading } = useUser();
+
   const [devpost, setDevpost] = useState('');
   const [github, setGithub] = useState('');
   const [linkedin, setLinkedin] = useState('');
