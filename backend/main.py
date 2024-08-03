@@ -63,9 +63,28 @@ class Job(Document):
     class Settings:
         name = "jobs"
 
+class SkillInfo(BaseModel):
+    name: Optional[str] = None
+    summary: Optional[str] = None
+    score: Optional[float] = None
+
+class FileSummary(BaseModel):
+    filename: Optional[str] = None
+    summary: Optional[str] = None
+
+class TechCompetence(BaseModel):
+    score: Optional[float] = None
+    summary: Optional[str] = None
+
 class Repository(Document):
+    user_id: str
+    job_id: str
     repo_url: str
     summary: Optional[str] = None
+    ind_file_summaries: List[FileSummary] = []
+    skills: List[SkillInfo] = []
+    tech_competence: Optional[TechCompetence] = None
+
     class Settings:
         name = "repositories"
 
@@ -77,8 +96,10 @@ async def init_db():
     client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
     await init_beanie(database=client.your_database_name, document_models=[User, Job, Repository])
 
+
 class CloneRequest(BaseModel):
     repo_url: str
+
 
 def should_process_folder(path: str) -> bool:
     irrelevant_folders = [
@@ -87,9 +108,11 @@ def should_process_folder(path: str) -> bool:
     modified_path = path.split('tempRepo')[-1] if 'tempRepo' in path else path
     return not any(folder in modified_path for folder in irrelevant_folders)
 
+
 def should_process_file(file_path: str) -> bool:
     irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml']
     return not any(file_path.endswith(ext) for ext in irrelevant_extensions)
+
 
 def list_files_recursive(dir: Path):
     for entry in dir.iterdir():
@@ -99,8 +122,10 @@ def list_files_recursive(dir: Path):
         else:
             yield entry
 
+
 def list_files(dir: Path):
     return [file_path for file_path in list_files_recursive(dir) if should_process_file(str(file_path))]
+
 
 def get_combined_file_contents(file_paths):
     combined_content = ["Please summarize the following project based on the provided files and their content. The files are organized by name and content:"]
@@ -124,6 +149,7 @@ async def run(prompt: str) -> str:
     model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content(prompt)
     return response.text
+
 
 @app.post("/cloneAndProcess")
 async def processor(request: Request, background_tasks: BackgroundTasks):
@@ -162,3 +188,9 @@ async def clone_and_process(repo_url: str):
     except Exception as e:
         print(e)
         # raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/begin-processing")
+async def begin_processing(request: Request):
+    print("Beginning processing")
+    return {"message": "Processing started in the background."}
