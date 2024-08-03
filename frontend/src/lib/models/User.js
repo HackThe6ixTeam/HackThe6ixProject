@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
   linkedin: { type: String, required: true },
   user: { type: Object, required: true },
   resumeText: { type: String, required: true },
+  jobs: { type: Array, required: true },
 });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
