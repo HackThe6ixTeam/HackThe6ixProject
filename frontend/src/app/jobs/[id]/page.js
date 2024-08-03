@@ -1,6 +1,6 @@
 // src/app/job/[id]/page.js
 import { notFound } from 'next/navigation';
-import { getJobById } from '../../lib/jobs'; // Adjust import path as needed
+import { getJobById } from '../../../lib/jobs'; // Adjust import path as needed
 
 export default async function JobDetail({ params }) {
   const { id } = params;
@@ -15,8 +15,7 @@ export default async function JobDetail({ params }) {
 
   return (
     <div>
-      <h1>{job.title}</h1>
-      <p>{job.description}</p>
+      <p>Job: {job.job}</p>
       <p>Status: {job.status}</p>
       {/* Add more job details here */}
     </div>
