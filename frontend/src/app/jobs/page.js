@@ -41,6 +41,7 @@ function getRandomElement(arr) {
         location: 'Toronto',
         applicants: 123,
         status: 'open',
+        keywords: ['Python', 'JavaScript', 'React', 'Node.js', 'CSS', 'HTML', 'Java', 'SQL', 'TypeScript', 'C++']
       },
       {
         id: 'f9aebd89-dae4-4c3e-9e5b-4e10a71a2487',
@@ -50,6 +51,7 @@ function getRandomElement(arr) {
         location: 'Vancouver',
         applicants: 87,
         status: 'in_review',
+        keywords: ['Python', 'SQL', 'Java', 'JavaScript', 'R', 'HTML', 'CSS', 'Node.js', 'MATLAB', 'Scala']
       },
       {
         id: 'c6d7485e-9c3d-4c0a-a27f-15b8c8b134ed',
@@ -59,6 +61,7 @@ function getRandomElement(arr) {
         location: 'Montreal',
         applicants: 56,
         status: 'closed',
+        keywords: ['Java', 'Python', 'React', 'HTML', 'CSS', 'JavaScript', 'Node.js', 'SQL', 'Ruby', 'PHP']
       },
       {
         id: '8f6a7f8d-d5e9-4a95-9d58-2bfb2f7d23ed',
@@ -68,6 +71,7 @@ function getRandomElement(arr) {
         location: 'Calgary',
         applicants: 174,
         status: 'open',
+        keywords: ['HTML', 'CSS', 'JavaScript', 'React', 'TypeScript', 'Figma', 'Sketch', 'Photoshop', 'InVision', 'Axure']
       },
       {
         id: 'af5c9824-4f6c-4b6b-9100-36d6d8c8b89e',
@@ -77,6 +81,7 @@ function getRandomElement(arr) {
         location: 'Ottawa',
         applicants: 92,
         status: 'in_review',
+        keywords: ['SEO', 'Google Analytics', 'HTML', 'CSS', 'JavaScript', 'Social Media', 'Content Marketing', 'Email Marketing', 'PPC', 'CRM']
       },
       {
         id: '2b00a4d5-85d7-4d8f-9a87-3eacbc60d441',
@@ -86,6 +91,7 @@ function getRandomElement(arr) {
         location: 'Toronto',
         applicants: 139,
         status: 'open',
+        keywords: ['Docker', 'Kubernetes', 'Python', 'Java', 'JavaScript', 'CI/CD', 'AWS', 'Azure', 'Terraform', 'Linux']
       },
       {
         id: '5a1e6f2b-8293-4f57-a9c0-22e3e0b6c8a1',
@@ -95,9 +101,11 @@ function getRandomElement(arr) {
         location: 'Vancouver',
         applicants: 65,
         status: 'closed',
+        keywords: ['Python', 'JavaScript', 'C++', 'SQL', 'Network Security', 'Ethical Hacking', 'Firewalls', 'Intrusion Detection', 'Malware Analysis', 'Cryptography']
       }
     ];
   }
+  
   
   
 
