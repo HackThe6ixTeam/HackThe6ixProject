@@ -4,50 +4,48 @@ import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Button } from '@/components/ui/button';
 
-async function fetchJobs() {
-    const res = await fetch('/api/job', {
-      method: 'GET',
+const fetchJobs = async () => {
+  try {
+    const res = await fetch("http://localhost:3000/api/job", {
+      cache: "no-store",
     });
+
     if (!res.ok) {
-      throw new Error('Failed to fetch jobs');
+      throw new Error("Failed to fetch jobs");
     }
+
     return res.json();
+  } catch (error) {
+    console.log("Error loading jobs: ", error);
+    return { jobs: [] }; // Return an empty array if there's an error
   }
-  
-  async function postJob(newJob) {
-    const res = await fetch('/api/job', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newJob),
-    });
-  
-    if (!res.ok) {
-      throw new Error('Failed to post job');
-    }
-    return res.json();
-  }
-  
+};
 
 export default function DemoPage() {
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({ jobs: [] });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function loadJobs() {
-      try {
-        const jobs = await fetchJobs();
-        setData(jobs);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
+    const loadJobs = async () => {
+      const result = await fetchJobs();
+      setData(result);
+      setIsLoading(false);
+    };
 
     loadJobs();
   }, []);
+
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (!data.jobs.length) {
+    return <p>No jobs.</p>;
+  }
+
+  const jobs = data.jobs;
+
+  console.log('jobs', jobs);
 
   return (
     <div className="container mx-auto py-10">
@@ -58,11 +56,7 @@ export default function DemoPage() {
       </div>
 
       {/* Data Table */}
-      {isLoading ? (
-        <p>Loading...</p>
-      ) : (
-        <DataTable columns={columns} data={data} />
-      )}
+      <DataTable columns={columns} data={data} />
     </div>
   );
 }
