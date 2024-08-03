@@ -4,15 +4,15 @@ import User from '@/lib/models/User';  // Adjust this import based on your proje
 
 export async function POST(req) {
     try {
-        const { userId, code } = await req.json();
+        const { userId, access_token } = await req.json();
 
-        if (!userId || !code) {
+        if (!userId || !access_token) {
             return NextResponse.json({ error: 'Missing userId or code' }, { status: 400 });
         }
 
         const updatedUser = await User.findByIdAndUpdate(
             userId,
-            { github_token: code },
+            { github_token: access_token },
             { new: true }
         );
 

@@ -9,11 +9,10 @@ const Page = () => {
 
     useEffect(() => {
         const updateGithubToken = async () => {
-            const code = searchParams.get('code');
-            const state = searchParams.get('state');
+            const access_token = searchParams.get('access_token');
             const userId = localStorage.getItem('userId');
 
-            if (!code || !state || !userId) {
+            if (!access_token || !userId) {
                 setMessage('Error: Missing required information');
                 return;
             }
@@ -24,7 +23,7 @@ const Page = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ userId, code }),
+                    body: JSON.stringify({ userId, access_token }),
                 });
 
                 if (!response.ok) {
