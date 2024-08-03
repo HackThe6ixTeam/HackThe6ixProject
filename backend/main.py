@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from pydantic import BaseModel
 from git import Repo
@@ -7,9 +8,28 @@ import os
 import google.generativeai as genai
 from fastapi.middleware.cors import CORSMiddleware
 import tempfile
+from beanie import Document, Indexed, init_beanie, Link
+from motor.motor_asyncio import AsyncIOMotorClient
+from datetime import datetime
+import asyncio
+from dotenv import load_dotenv
+from typing import List, Optional
 
-app = FastAPI()
+load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Initialize the database connection
+    client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
+    await init_beanie(database=client.Hackthe6ix, document_models=[User, Job, Repository])
+    
+    yield  # This is where the FastAPI app runs
+    
+    # Shutdown: Close the database connection
+    client.close()
+
+
+app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Adjust this to your needs
@@ -18,8 +38,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# classes for MongoDB
+class User(Document):
+    devpost: str
+    github: str
+    github_token: Optional[str] = None
+    linkedin: str
+    user: dict
+    resumeText: str
+
+    class Settings:
+        name = "users"
+
+class Job(Document):
+    job: str
+    type: str
+    created: str
+    location: str
+    description: str
+    keywords: List[str]
+    applicants: List[Link[User]] = []
+    status: str
+
+    class Settings:
+        name = "jobs"
+
+class Repository(Document):
+    repo_url: str
+    summary: Optional[str] = None
+    class Settings:
+        name = "repositories"
+
+
 # Initialize GoogleGenerativeAI with API key
 genai.configure(api_key='AIzaSyAEAh4mufNHAh_FiMwD_4nE8xng8Elll6w')
+
+async def init_db():
+    client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
+    await init_beanie(database=client.your_database_name, document_models=[User, Job, Repository])
 
 class CloneRequest(BaseModel):
     repo_url: str
@@ -57,6 +113,13 @@ def get_combined_file_contents(file_paths):
             print(f"Skipping file {file_path}: {e}")
     return "\n".join(combined_content)
 
+
+async def store_result_in_mongodb(repo_url: str, summary: str):
+    repo = Repository(repo_url=repo_url, summary=summary)
+    await repo.insert()
+    return str(repo.id)
+
+
 async def run(prompt: str) -> str:
     model = genai.GenerativeModel('gemini-1.5-flash')
     response = model.generate_content(prompt)
@@ -89,8 +152,10 @@ async def clone_and_process(repo_url: str):
             combined_content = get_combined_file_contents(files)
 
             result = await run(combined_content)
-
             print(result)
+
+            document_id = await store_result_in_mongodb(repo_url, result)
+            print(f"Stored in MongoDB with ID: {document_id}")
 
         print({"success": True, "combinedContent": combined_content})
 
