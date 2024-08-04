@@ -1,4 +1,3 @@
-// src/app/job/[id]/page.js
 "use client"; // Ensure this is at the top if you use client-side hooks
 
 import { useState, useEffect } from 'react';
@@ -11,20 +10,21 @@ const getUserById = async (id) => {
     });
 
     if (!res.ok) {
-      throw new Error("Failed to fetch topic");
+      throw new Error("Failed to fetch user");
     }
 
     return res.json();
   } catch (error) {
     console.log(error);
+    return {}; // Return an empty object in case of error
   }
 };
 
 export default function JobDetail({ params }) {
   const { id } = params;
-  console.log(id);
   const [job, setJob] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
+  const [applicantsDetails, setApplicantsDetails] = useState([]);
 
   useEffect(() => {
     async function fetchJob() {
@@ -34,11 +34,15 @@ export default function JobDetail({ params }) {
           throw new Error('Job not found');
         }
         const data = await response.json();
-        console.log(data);
         setJob(data);
 
-        const userData = await getUserById(data.applicants[0]);
-        console.log(userData);
+        const applicantsData = await Promise.all(
+          data.applicants.map(async (applicantId) => {
+            const userData = await getUserById(applicantId);
+            return userData;
+          })
+        );
+        setApplicantsDetails(applicantsData);
       } catch (error) {
         notFound();
       }
@@ -82,23 +86,25 @@ export default function JobDetail({ params }) {
       )}
       {selectedTab === 'applicants' && (
         <div className="mt-4">
-          {job.applicants && job.applicants.length > 0 ? (
+          {applicantsDetails && applicantsDetails.length > 0 ? (
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Compatibility</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Github</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Devpost</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Linkedin</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {job.applicants.map((applicant, index) => (
+                {applicantsDetails.map((applicant, index) => (
                   <tr key={index}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{applicant.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.compatibility}%</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.submitted}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.status}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{applicant.user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.github || 'N/A'}%</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.devpost}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.linkedin}</td>
                   </tr>
                 ))}
               </tbody>
