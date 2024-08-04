@@ -116,7 +116,7 @@ def should_process_folder(path: str) -> bool:
 
 
 def should_process_file(file_path: str) -> bool:
-    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml']
+    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg']
     return not any(file_path.endswith(ext) for ext in irrelevant_extensions)
 
 
@@ -288,7 +288,63 @@ Evaluate how well the skills demonstrated in the repository match the job requir
         print(f"Error cloning repository: {str(e)}")
 
 
+@app.get("/get-spider-and-tech")
+async def calc_spider_score_and_tech_comp(request: Request):
+    try:
+        # Get user_id and job_id from request body
+        body = await request.json()
+        user_id = body.get('user_id')
+        job_id = body.get('job_id')
 
+        if not user_id or not job_id:
+            raise HTTPException(status_code=400, detail="Missing user_id or job_id")
+
+        # Get the job with job_id and extract keywords
+        job = await Job.get(ObjectId(job_id))
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        keywords = job.keywords
+
+        # Get all repository documents that have user_id and job_id
+        repositories = await Repository.find(
+            Repository.user_id == ObjectId(user_id),
+            Repository.job_id == ObjectId(job_id)
+        ).to_list()
+
+        if not repositories:
+            raise HTTPException(status_code=404, detail="No repositories found for this user and job")
+
+        total_tech_competence = 0
+        relevant_skills = {keyword: [] for keyword in keywords}
+
+        for repo in repositories:
+            # Add tech competence score
+            if repo.tech_competence and repo.tech_competence.score is not None:
+                total_tech_competence += repo.tech_competence.score
+
+            # Add relevant skill scores
+            for skill in repo.skills:
+                if skill.name.lower() in [k.lower() for k in keywords]:
+                    relevant_skills[skill.name.lower()].append(skill.score)
+
+        # Calculate averages
+        avg_tech_competence = total_tech_competence / len(repositories) if repositories else 0
+        avg_skill_scores = {
+            skill: sum(scores) / len(scores) if scores else 0
+            for skill, scores in relevant_skills.items()
+        }
+
+        return {
+            "average_tech_competence": avg_tech_competence,
+            "average_skill_scores": avg_skill_scores
+        }
+
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        print(f"Error in calc_spider_score_and_tech_comp: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 # this function begins the processing of repositories
@@ -351,7 +407,7 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
                 counter += 1
 
                 if counter == 5:
-                    break
+                    return {"message": "Dont 5", "total_repos": len(repos)}
 
             # call background function that initiatives cloning + analysis function
             # background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
