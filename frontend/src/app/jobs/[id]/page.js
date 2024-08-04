@@ -39,6 +39,9 @@ export default function JobDetail({ params }) {
   const [applicantsDetails, setApplicantsDetails] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
+  const [techCompetency, setTechCompetency] = useState(null);
+  const [verifiedPercentage, setVerifiedPercentage] = useState(null);
+  const [jobCompatibility, setJobCompatibility] = useState(null);
   const [resumeUrls, setResumeUrls] = useState({});
   const [processingData, setProcessingData] = useState(null);
 
@@ -63,9 +66,51 @@ export default function JobDetail({ params }) {
         const processingData = await processingResponse.json();
         console.log('Processing data:', processingData);
         setProcessingData(processingData);
+        setTechCompetency(processingData.average_tech_competence * 100);
       }
 
       fetchData();
+
+
+      async function fetchVerifiedPercentage() {
+        const processingResponse = await fetch('http://127.0.0.1:8000/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: selectedApplicant.resumeText }),
+        });
+
+        if (!processingResponse.ok) {
+          throw new Error('Failed to begin processing');
+        }
+
+        const processingData = await processingResponse.json();
+        console.log('verified data:', processingData);
+        setVerifiedPercentage(processingData);
+      }
+
+      fetchVerifiedPercentage();
+      
+      async function fetchJobCompatibility() {
+        const processingResponse = await fetch('http://127.0.0.1:8000/resume-job-match', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ job_id: job._id, resume: selectedApplicant.resumeText }),
+        });
+
+        if (!processingResponse.ok) {
+          throw new Error('Failed to begin processing');
+        }
+
+        const processingData = await processingResponse.json();
+        console.log('job compatibility:', processingData);
+        setJobCompatibility(processingData);
+      }
+
+      fetchJobCompatibility();
     }
   }, [selectedApplicant]);
 
@@ -191,7 +236,7 @@ export default function JobDetail({ params }) {
   const radarData = processingData
     ? Object.entries(processingData.average_skill_scores).map(([key, value]) => ({
         skill: key,
-        level: value,
+        level: value * 10,
       }))
     : [];
 
@@ -258,7 +303,13 @@ export default function JobDetail({ params }) {
                         <h3 className="text-xl font-bold">{atsScore !== null ? `${atsScore}% ATS Match` : 'Calculating ATS Match...'}</h3>
                       </div>
                       <div className="inline-block border rounded p-4 m-2">
-                        <h3 className="text-xl font-bold">40% Verified Data</h3>
+                        <h3 className="text-xl font-bold">{techCompetency !== null ? `${techCompetency}% Tech Competency` : 'Calculating Tech Competency...'}</h3>
+                      </div>
+                      <div className="inline-block border rounded p-4 m-2">
+                        <h3 className="text-xl font-bold">{verifiedPercentage.match_percentage !== null ? `${verifiedPercentage.match_percentage}% Verified Data` : 'Calculating Verified Data...'}</h3>
+                      </div>
+                      <div className="inline-block border rounded p-4 m-2">
+                        <h3 className="text-xl font-bold">{jobCompatibility.relevance_score !== null ? `${jobCompatibility.relevance_score}% Skill Compatibility` : 'Skill Compatibility...'}</h3>
                       </div>
                     </div>
 
@@ -270,6 +321,10 @@ export default function JobDetail({ params }) {
                         <Radar name="Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
                         <Tooltip />
                       </RadarChart>
+                    </div>
+
+                    <div>
+                     <h3 className="font-semibold">{jobCompatibility.explanation !== null ? `${jobCompatibility.explanation}` : 'Skill Compatibility...'}</h3>
                     </div>
                   </div>
                 </div>
