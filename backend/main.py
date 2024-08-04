@@ -120,7 +120,7 @@ def should_process_folder(path: str) -> bool:
 
 
 def should_process_file(file_path: str) -> bool:
-    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg']
+    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg', '.pdf', '.sqlite']
     return not any(file_path.endswith(ext) for ext in irrelevant_extensions)
 
 
@@ -321,6 +321,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
         total_tech_competence = 0
         relevant_skills = {keyword: [] for keyword in keywords}
 
+        print(relevant_skills)
+
         for repo in repositories:
             # Add tech competence score
             if repo.tech_competence and repo.tech_competence.score is not None:
@@ -328,8 +330,11 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
 
             # Add relevant skill scores
             for skill in repo.skills:
+                print(skill)
                 if skill.name.lower() in [k.lower() for k in keywords]:
                     relevant_skills[skill.name.lower()].append(skill.score)
+
+        print(relevant_skills)
 
         # Calculate averages
         avg_tech_competence = total_tech_competence / len(repositories) if repositories else 0
