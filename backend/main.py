@@ -432,7 +432,7 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
                 counter += 1
                 print(counter)
 
-                if counter == 5:
+                if counter == 15:
                     return {"message": "Dont 5", "total_repos": len(repos)}
 
             # call background function that initiatives cloning + analysis function
@@ -623,7 +623,7 @@ async def search(request: Request):
 
         print(results)
 
-        high_score_count = sum(1 for result in results if result['score'] > 0.5)
+        high_score_count = sum(1 for result in results if result['score'] > 0.6)
 
         # If at least 3 out of 5 results have a score > 1.0, count this section
         if high_score_count >= 3:
@@ -642,6 +642,60 @@ async def search(request: Request):
         "total_sections": total_sections
     }
 
+
+class ResumeJobMatchRequest(BaseModel):
+    resume: str
+    job_id: str
+
+@app.post("/resume-job-match")
+async def resume_job_match(request: ResumeJobMatchRequest):
+    try:
+        # Fetch the job description
+        job = await Job.get(ObjectId(request.job_id))
+        if not job:
+            raise HTTPException(status_code=404, detail="Job not found")
+
+        # Prepare the prompt for the LLM
+        prompt = f"""
+        Job Description:
+        {job.description}
+
+        Resume:
+        {request.resume}
+
+        Please analyze the resume in the context of the given job description. 
+        Evaluate how well the past work experiences mentioned in the resume match the job requirements.
+        Provide a percentage score indicating the relevance of the past work experiences to the current job.
+        """
+
+        # Define the response model for the LLM
+        class RelevanceAnalysis(BaseModel):
+            relevance_score: float = Field(description="A percentage score (0-100) indicating how relevant the past work experiences are to the current job.")
+            explanation: str = Field(description="A brief explanation of the relevance score.")
+
+        # Run the LLM analysis
+        result = client.messages.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt,
+                }
+            ],
+            response_model=RelevanceAnalysis,
+        )
+
+        return {
+            "relevance_score": result.relevance_score,
+            "explanation": result.explanation
+        }
+
+    except InvalidId:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        print(f"Error in resume_job_match: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 if __name__ == "__main__":
