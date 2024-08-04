@@ -225,13 +225,17 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
     # first create repo document to store stuff
 
     repo_id = await create_repository_document(str(user_obj_id), str(job_obj_id), repo["url"])
+    print(f"Created repository document with ID: {repo_id}")
 
     # then, clone the repo
     try:
+        print("in try block")
         # Create a unique temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_dir = Path(temp_dir) / 'tempRepo'
             auth_url = repo["url"].replace('https://', f'https://{access_token}@')
+
+            print(auth_url)
 
             # Clone the repository
             print('Cloning...')
@@ -316,6 +320,7 @@ async def begin_processing(request: ProcessingRequest, background_tasks: Backgro
 
             # call background function that initiatives cloning + analysis function
             background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
+            print("Processing queued for the first repository")
 
             # background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
 
