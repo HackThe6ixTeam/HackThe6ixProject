@@ -40,6 +40,7 @@ export default function JobDetail({ params }) {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
   const [resumeUrls, setResumeUrls] = useState({});
+  const [processingData, setProcessingData] = useState(null);
 
   useEffect(() => {
     if (selectedApplicant) {
@@ -49,18 +50,19 @@ export default function JobDetail({ params }) {
       async function fetchData() {
         const processingResponse = await fetch('http://127.0.0.1:8000/spider-and-tech', {
           method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ user_id: selectedApplicant._id, job_id: job._id }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ user_id: selectedApplicant._id, job_id: job._id }),
         });
 
         if (!processingResponse.ok) {
-            throw new Error('Failed to begin processing');
+          throw new Error('Failed to begin processing');
         }
 
         const processingData = await processingResponse.json();
         console.log('Processing data:', processingData);
+        setProcessingData(processingData);
       }
 
       fetchData();
@@ -186,13 +188,12 @@ export default function JobDetail({ params }) {
   };
 
   // Prepare data for the radar chart
-  const radarData = Object.entries(job.keywords.reduce((acc, keyword) => {
-    acc[keyword] = 0;
-    return acc;
-  }, {})).map(([key, value]) => ({
-    skill: key,
-    level: value,
-  }));
+  const radarData = processingData
+    ? Object.entries(processingData.average_skill_scores).map(([key, value]) => ({
+        skill: key,
+        level: value,
+      }))
+    : [];
 
   return (
     <div className="p-6 md:p-8 lg:p-12">
@@ -266,7 +267,7 @@ export default function JobDetail({ params }) {
                         <PolarGrid />
                         <PolarAngleAxis dataKey="skill" />
                         <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                        <Radar name="Job Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                        <Radar name="Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
                         <Tooltip />
                       </RadarChart>
                     </div>
