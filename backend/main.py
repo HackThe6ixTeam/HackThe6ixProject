@@ -344,17 +344,23 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
         print(repos)
 
         if repos:
-            # Process only the first repository in the background
-            first_repo = repos[0]
+
+            counter = 0
+            for repo in repos:
+                await handle_repo(repo, user_object_id, job_object_id, user.github_token)
+                counter += 1
+
+                if counter == 5:
+                    break
 
             # call background function that initiatives cloning + analysis function
             # background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
-            await handle_repo(first_repo, user_object_id, job_object_id, user.github_token)
+            
             # print("Processing queued for the first repository")
 
             # background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
 
-        return {"message": "Processing started for the first repository", "total_repos": len(repos)}
+        return {"message": "Dont 5", "total_repos": len(repos)}
 
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid user ID or job ID format")
