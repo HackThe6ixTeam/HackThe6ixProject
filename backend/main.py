@@ -251,7 +251,8 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
             # call run on the final string
             result = await run(prompt)
 
-            print(result)
+        print(result)
+        print({"success": True})
 
 
             # take results from run (RepositoryAnalysis) and store in repo document as necessary
@@ -265,7 +266,7 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
 
 # this function begins the processing of repositories
 @app.post("/begin-processing")
-async def begin_processing(request: ProcessingRequest, background_tasks: BackgroundTasks):
+async def begin_processing(request: ProcessingRequest): #, background_tasks: BackgroundTasks):
     try:
         # Convert the string user_id and job_id to ObjectId
         user_object_id = ObjectId(request.user_id)
@@ -320,8 +321,9 @@ async def begin_processing(request: ProcessingRequest, background_tasks: Backgro
             first_repo = repos[0]
 
             # call background function that initiatives cloning + analysis function
-            background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
-            print("Processing queued for the first repository")
+            # background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
+            await handle_repo(first_repo, user_object_id, job_object_id, user.github_token)
+            # print("Processing queued for the first repository")
 
             # background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
 
