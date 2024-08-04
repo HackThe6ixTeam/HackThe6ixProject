@@ -39,6 +39,32 @@ export default function JobDetail({ params }) {
   const [atsScore, setAtsScore] = useState(null);
 
   useEffect(() => {
+    if (selectedApplicant) {
+      console.log(selectedApplicant._id);
+      console.log(job._id);
+
+      async function fetchData() {
+        const processingResponse = await fetch('http://127.0.0.1:8000/spider-and-tech', {
+          method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ user_id: selectedApplicant._id, job_id: job._id }),
+        });
+
+        if (!processingResponse.ok) {
+            throw new Error('Failed to begin processing');
+        }
+
+        const processingData = await processingResponse.json();
+        console.log('Processing data:', processingData);
+      }
+
+      fetchData();
+    }
+  }, [selectedApplicant]);
+
+  useEffect(() => {
     async function fetchJob() {
       try {
         const response = await fetch(`/api/jobs/${id}`);
@@ -46,6 +72,7 @@ export default function JobDetail({ params }) {
           throw new Error('Job not found');
         }
         const data = await response.json();
+        console.log(data);
         setJob(data);
 
         // Fetch applicants details

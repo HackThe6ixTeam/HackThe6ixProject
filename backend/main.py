@@ -13,21 +13,19 @@ from beanie import Document, Indexed, init_beanie, Link, PydanticObjectId
 from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 import asyncio
-from dotenv import load_dotenv
 from typing import List, Optional
 import httpx
 from bson import ObjectId
 from bson.errors import InvalidId
 import instructor
 
-load_dotenv()
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize the database connection
-    client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
+    client = AsyncIOMotorClient('mongodb+srv://alphahamza5252:7kw9D4FaUKVxUKv0@cluster0.pnc8kbl.mongodb.net/Hackthe6ix')
     await init_beanie(database=client.Hackthe6ix, document_models=[User, Job, Repository])
     
     yield  # This is where the FastAPI app runs
@@ -68,7 +66,6 @@ class Job(Document):
     description: str
     keywords: List[str]
     applicants: List[Link[User]] = []
-    status: str
 
     class Settings:
         name = "jobs"
@@ -308,6 +305,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
         # body = await request.json()
         user_id = request.user_id
         job_id = request.job_id
+        
+        print(user_id, job_id)
 
         if not user_id or not job_id:
             raise HTTPException(status_code=400, detail="Missing user_id or job_id")
