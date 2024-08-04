@@ -120,7 +120,7 @@ def should_process_folder(path: str) -> bool:
 
 
 def should_process_file(file_path: str) -> bool:
-    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg', '.pdf', '.sqlite']
+    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg', '.pdf', '.sqlite', '.DS_Store']
     return not any(file_path.endswith(ext) for ext in irrelevant_extensions)
 
 
