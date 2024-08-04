@@ -38,37 +38,6 @@ export default function JobDetail({ params }) {
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
 
-  // Define gitData
-  const gitData = {
-    skills: {
-      Python: 2,
-      Java: 4,
-      SQL: 6,
-    },
-    summary: "Experienced in backend development using Python, Java, and SQL.",
-  };
-
-  // Define job keywords and initialize counts
-  const jobKeywords = {
-    Python: 0,
-    Java: 0,
-    SQL: 0,
-    JavaScript: 0,
-    HTML: 0,
-    CSS: 0,
-    React: 0,
-    Node: 0,
-    MongoDB: 0,
-    Docker: 0,
-  };
-
-  // Replace counts in jobKeywords with those in gitData where they match
-  Object.keys(gitData.skills).forEach(skill => {
-    if (jobKeywords.hasOwnProperty(skill)) {
-      jobKeywords[skill] = gitData.skills[skill];
-    }
-  });
-
   useEffect(() => {
     async function fetchJob() {
       try {
@@ -88,7 +57,13 @@ export default function JobDetail({ params }) {
         );
         setApplicantsDetails(applicantsData);
 
-        // Calculate ATS score if there is a selected applicant
+        // Extract job keywords from the job data
+        const jobKeywords = data.keywords.reduce((acc, keyword) => {
+          acc[keyword] = 0; // Initialize keyword counts to 0
+          return acc;
+        }, {});
+
+        // Set the job keywords for ATS scoring
         if (data.applicants.length > 0) {
           const resumeText = applicantsData[0].resumeText || ''; // Assuming we take the first applicant for ATS scoring
           const score = calculateATSScore(jobKeywords, resumeText);
@@ -167,7 +142,10 @@ export default function JobDetail({ params }) {
   };
 
   // Prepare data for the radar chart
-  const radarData = Object.entries(jobKeywords).map(([key, value]) => ({
+  const radarData = Object.entries(job.keywords.reduce((acc, keyword) => {
+    acc[keyword] = 0;
+    return acc;
+  }, {})).map(([key, value]) => ({
     skill: key,
     level: value,
   }));
