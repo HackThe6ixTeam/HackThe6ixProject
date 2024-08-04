@@ -311,8 +311,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
 
         # Get all repository documents that have user_id and job_id
         repositories = await Repository.find(
-            Repository.user_id == ObjectId(user_id),
-            Repository.job_id == ObjectId(job_id)
+            Repository.user_id == PydanticObjectId(user_id),
+            Repository.job_id == PydanticObjectId(job_id)
         ).to_list()
 
         if not repositories:
