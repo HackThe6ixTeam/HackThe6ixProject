@@ -42,7 +42,7 @@ const Page = () => {
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ userId, jobId }),
+                    body: JSON.stringify({ user_id: userId, job_id: jobId }),
                 });
 
                 if (!processingResponse.ok) {

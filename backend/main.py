@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from git import Repo
 from pathlib import Path
 import shutil
+from sentence_transformers import SentenceTransformer
 import os
 import google.generativeai as genai
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +21,8 @@ from bson.errors import InvalidId
 import instructor
 
 load_dotenv()
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -84,17 +87,22 @@ class TechCompetence(BaseModel):
     summary: Optional[str] = None
 
 class Repository(Document):
-    user_id: Link[User]
-    job_id: Link[Job]
+    user_id: str
+    job_id: str
     repo_url: str = Field(default='')
     summary: Optional[str] = None
     ind_file_summaries: List[FileSummary] = []
     skills: List[SkillInfo] = []
     tech_competence: Optional[TechCompetence] = None
+    embeddings: Optional[List[float]] = None
 
     class Settings:
         name = "repositories"
 
+
+def generate_embeddings(text: str) -> List[float]:
+    embedding = model.encode(text)
+    return embedding.tolist()
 
 # Initialize GoogleGenerativeAI with API key
 genai.configure(api_key='AIzaSyAEAh4mufNHAh_FiMwD_4nE8xng8Elll6w')
@@ -113,14 +121,14 @@ class CloneRequest(BaseModel):
 
 def should_process_folder(path: str) -> bool:
     irrelevant_folders = [
-        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite', 'data'
+        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite', 'data', 'lstm_lrp'
     ]
     modified_path = path.split('tempRepo')[-1] if 'tempRepo' in path else path
     return not any(folder in modified_path for folder in irrelevant_folders)
 
 
 def should_process_file(file_path: str) -> bool:
-    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg']
+    irrelevant_extensions = ['.gitignore', '.css', '.md', '.log', '.json', '.lock', '.yml', '.yaml', '.pkl', '.pth', '.png', '.jpg', '.pdf', '.sqlite', '.DS_Store']
     return not any(file_path.endswith(ext) for ext in irrelevant_extensions)
 
 
@@ -158,8 +166,8 @@ async def store_result_in_mongodb(repo_url: str, summary: str):
 async def create_repository_document(user_id: str, job_id: str, repo_url: str):
     try:
         new_repo = Repository(
-            user_id=PydanticObjectId(user_id),
-            job_id=PydanticObjectId(job_id),
+            user_id=user_id,
+            job_id=job_id,
             repo_url=repo_url
         )
         await new_repo.insert()
@@ -235,7 +243,7 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
     try:
         print("in try block")
 
-        job = await Job.get(PydanticObjectId(job_obj_id))
+        job = await Job.get(ObjectId(job_obj_id))
         if not job:
             raise ValueError(f"Job with ID {job_obj_id} not found")
         job_description = job.description
@@ -279,6 +287,8 @@ Evaluate how well the skills demonstrated in the repository match the job requir
             repo_document.skills = result.skills
             repo_document.tech_competence = result.tech_competence
 
+            repo_document.embeddings = generate_embeddings(result.summary)
+
             await repo_document.save()
             print(f"Updated repository document with analysis results")
         else:
@@ -311,8 +321,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
 
         # Get all repository documents that have user_id and job_id
         repositories = await Repository.find(
-            Repository.user_id == PydanticObjectId(user_id),
-            Repository.job_id == PydanticObjectId(job_id)
+            Repository.user_id == user_id,
+            Repository.job_id == job_id
         ).to_list()
 
         if not repositories:
@@ -321,6 +331,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
         total_tech_competence = 0
         relevant_skills = {keyword: [] for keyword in keywords}
 
+        print(relevant_skills)
+
         for repo in repositories:
             # Add tech competence score
             if repo.tech_competence and repo.tech_competence.score is not None:
@@ -328,8 +340,11 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
 
             # Add relevant skill scores
             for skill in repo.skills:
-                if skill.name.lower() in [k.lower() for k in keywords]:
-                    relevant_skills[skill.name.lower()].append(skill.score)
+                print(skill)
+                if skill.name in keywords:
+                    relevant_skills[skill.name].append(skill.score)
+
+        print(relevant_skills)
 
         # Calculate averages
         avg_tech_competence = total_tech_competence / len(repositories) if repositories else 0
@@ -406,8 +421,9 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
 
             counter = 0
             for repo in repos:
-                await handle_repo(repo, user_object_id, job_object_id, user.github_token)
+                await handle_repo(repo, str(user_object_id), str(job_object_id), user.github_token)
                 counter += 1
+                print(counter)
 
                 if counter == 5:
                     return {"message": "Dont 5", "total_repos": len(repos)}
