@@ -301,6 +301,7 @@ export default function JobDetail({ params }) {
       </div>
     )}
     {selectedTab === 'applicants' && (
+    <div className='w-full flex flex-row justify-center'>
       <div className="mt-4">
         {selectedApplicant ? (
           <div>
@@ -426,6 +427,7 @@ export default function JobDetail({ params }) {
             )}
           </div>
         )}
+      </div>
       </div>
     )}
   </div>
