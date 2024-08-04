@@ -48,13 +48,13 @@ export const NavBarButtons = () => {
         console.log(data);
 
         // Determine userType
-        const newUserType = data.user_metadata.account_type === "I'm looking for a job" ? 'jobSeeker' : 'hiringManager';
+        const newUserType = data?.user_metadata?.account_type === "I'm looking for a job" ? 'jobSeeker' : 'hiringManager';
         setUserType(newUserType);
 
         // Set additional global variables
-        setDevpost(data.user_metadata.devpost);
-        setGithub(data.user_metadata.github);
-        setLinkedin(data.user_metadata.linkedin);
+        setDevpost(data?.user_metadata?.devpost);
+        setGithub(data?.user_metadata?.github);
+        setLinkedin(data?.user_metadata?.linkedin);
       })
       .catch((error) => {
         console.log(error);

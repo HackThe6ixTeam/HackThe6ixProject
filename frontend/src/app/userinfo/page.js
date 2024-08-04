@@ -1,6 +1,6 @@
 'use client'; // Mark this component as a client component
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import pdfToText from 'react-pdftotext';
 import { useUser } from '@auth0/nextjs-auth0/client'; // Ensure correct import for client
@@ -20,12 +20,19 @@ function bytesToMB(bytes) {
 
 const UserInfo = () => {
   const { user, error, isLoading } = useUser();
-  const { devpost, github, linkedin } = useUserType();
+  const { userType, devpost, github, linkedin } = useUserType();
   const [resume, setResume] = useState(null);
   const [resumeText, setResumeText] = useState('');
   const [fileMetaData, setFileMetaData] = useState(null);
   const [userId, setUserId] = useState(null); // State for storing userId
   const router = useRouter();
+
+  useEffect(() => {
+    console.log(userType)
+    if (userType && userType === 'hiringManager') {
+      router.push('/jobs');
+    }
+  }, [userType, router]);
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];

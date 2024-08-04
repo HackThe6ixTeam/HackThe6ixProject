@@ -2,7 +2,7 @@ import { handleAuth, handleLogin } from "@auth0/nextjs-auth0";
 
 export const GET = handleAuth({
   login: handleLogin({
-    returnTo: "/userinfo", // URL to redirect to after login
+    returnTo: "/jobs", // URL to redirect to after login
     authorizationParams: {
       type: "jobSeeker",
     },
