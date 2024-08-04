@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'; // Ensure correct import for Bu
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useUserType } from '@/context/UserTypeContext';
+import { storage } from '../../lib/firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';  // Adjust path if necessary
 
 function bytesToMB(bytes) {
   let megabytes = bytes / 1024 / 1024;
@@ -19,7 +21,6 @@ function bytesToMB(bytes) {
 const UserInfo = () => {
   const { user, error, isLoading } = useUser();
   const { devpost, github, linkedin } = useUserType();
-  console.log(devpost, github, linkedin);
   const [resume, setResume] = useState(null);
   const [resumeText, setResumeText] = useState('');
   const [fileMetaData, setFileMetaData] = useState(null);
@@ -47,6 +48,13 @@ const UserInfo = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    if (!user) {
+      console.error('No user logged in');
+      return;
+    }
+
+    const userId = user.sub; // Use Auth0 user ID or another unique user identifier
+
     const userInfo = { 
       devpost, 
       github, 
@@ -62,6 +70,17 @@ const UserInfo = () => {
     console.log(userInfo);
 
     try {
+      // Upload resume to Firebase Storage
+      if (resume) {
+        const resumeRef = ref(storage, `resumes/${userId}.pdf`);
+        await uploadBytes(resumeRef, resume);
+        const downloadURL = await getDownloadURL(resumeRef);
+        console.log('Resume URL:', downloadURL);
+        
+        // You can store the downloadURL with the user's info if needed
+      }
+
+      // Submit user info to your API
       const res = await fetch("/api/user", {
         method: "POST",
         headers: {
@@ -78,10 +97,9 @@ const UserInfo = () => {
       console.log("API Response:", data);
 
       if (data.userId) {
-        // setUserId(data.userId);
         console.log("User ID:", data.userId);
         
-        // You can store the userId in localStorage or in your app's state management system if needed
+        // Store the userId in localStorage or in your app's state management system if needed
         localStorage.setItem('userId', data.userId);
         
         // Redirect to /github auth page
