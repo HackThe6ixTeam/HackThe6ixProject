@@ -288,7 +288,7 @@ Evaluate how well the skills demonstrated in the repository match the job requir
         print(f"Error cloning repository: {str(e)}")
 
 
-@app.get("/get-spider-and-tech")
+@app.get("/spider-and-tech")
 async def calc_spider_score_and_tech_comp(request: Request):
     try:
         # Get user_id and job_id from request body
