@@ -109,7 +109,7 @@ class CloneRequest(BaseModel):
 
 def should_process_folder(path: str) -> bool:
     irrelevant_folders = [
-        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite'
+        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite', 'data'
     ]
     modified_path = path.split('tempRepo')[-1] if 'tempRepo' in path else path
     return not any(folder in modified_path for folder in irrelevant_folders)
@@ -208,6 +208,7 @@ class RepositoryAnalysis(BaseModel):
 
 # get LLM response, prompt needs to be a string of the combined content of all files
 async def run(prompt: str):
+    print("Running LLM")
     resp = client.messages.create(
         messages=[
             {
@@ -248,7 +249,7 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
             prompt = get_combined_file_contents(files)
             
             # call run on the final string
-            result = run(prompt)
+            result = await run(prompt)
 
             print(result)
 
