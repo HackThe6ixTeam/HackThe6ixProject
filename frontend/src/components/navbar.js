@@ -29,7 +29,6 @@ import axios from "axios";
 export const NavBarButtons = () => {
   const { user } = useUser();
   const { userType, setUserType, devpost, setDevpost, github, setGithub, linkedin, setLinkedin } = useUserType();
-  console.log(user);
 
   useEffect(() => {
     if (user) {

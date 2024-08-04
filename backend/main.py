@@ -75,7 +75,6 @@ class Job(Document):
     description: str
     keywords: List[str]
     applicants: List[Link[User]] = []
-    status: str
 
     class Settings:
         name = "jobs"
