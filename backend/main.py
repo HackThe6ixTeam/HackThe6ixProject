@@ -84,8 +84,8 @@ class TechCompetence(BaseModel):
     summary: Optional[str] = None
 
 class Repository(Document):
-    user_id: Link[User]
-    job_id: Link[Job]
+    user_id: str
+    job_id: str
     repo_url: str = Field(default='')
     summary: Optional[str] = None
     ind_file_summaries: List[FileSummary] = []
@@ -158,8 +158,8 @@ async def store_result_in_mongodb(repo_url: str, summary: str):
 async def create_repository_document(user_id: str, job_id: str, repo_url: str):
     try:
         new_repo = Repository(
-            user_id=PydanticObjectId(user_id),
-            job_id=PydanticObjectId(job_id),
+            user_id=user_id,
+            job_id=job_id,
             repo_url=repo_url
         )
         await new_repo.insert()
@@ -235,7 +235,7 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
     try:
         print("in try block")
 
-        job = await Job.get(PydanticObjectId(job_obj_id))
+        job = await Job.get(ObjectId(job_obj_id))
         if not job:
             raise ValueError(f"Job with ID {job_obj_id} not found")
         job_description = job.description
@@ -311,8 +311,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
 
         # Get all repository documents that have user_id and job_id
         repositories = await Repository.find(
-            Repository.user_id == PydanticObjectId(user_id),
-            Repository.job_id == PydanticObjectId(job_id)
+            Repository.user_id == user_id,
+            Repository.job_id == job_id
         ).to_list()
 
         if not repositories:
@@ -406,7 +406,7 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
 
             counter = 0
             for repo in repos:
-                await handle_repo(repo, user_object_id, job_object_id, user.github_token)
+                await handle_repo(repo, str(user_object_id), str(job_object_id), user.github_token)
                 counter += 1
 
                 if counter == 5:
