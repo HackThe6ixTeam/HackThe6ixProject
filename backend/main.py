@@ -292,9 +292,9 @@ Evaluate how well the skills demonstrated in the repository match the job requir
 async def calc_spider_score_and_tech_comp(request: Request):
     try:
         # Get user_id and job_id from request body
-        body = await request.json()
-        user_id = body.get('user_id')
-        job_id = body.get('job_id')
+        # body = await request.json()
+        user_id = request.user_id
+        job_id = request.job_id
 
         if not user_id or not job_id:
             raise HTTPException(status_code=400, detail="Missing user_id or job_id")
