@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { notFound } from 'next/navigation';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts';
+import { getDownloadURL, ref } from 'firebase/storage';
+import { storage } from '../../../lib/firebase'; // Update the path if necessary
 
 const getUserById = async (id) => {
   try {
@@ -37,6 +39,7 @@ export default function JobDetail({ params }) {
   const [applicantsDetails, setApplicantsDetails] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [atsScore, setAtsScore] = useState(null);
+  const [resumeUrls, setResumeUrls] = useState({});
 
   useEffect(() => {
     async function fetchJob() {
@@ -56,6 +59,20 @@ export default function JobDetail({ params }) {
           })
         );
         setApplicantsDetails(applicantsData);
+
+        // Fetch resume URLs from Firebase Storage
+        const resumeUrls = {};
+        await Promise.all(applicantsData.map(async (applicant) => {
+          const applicantId = applicant._id;
+          const resumeRef = ref(storage, `${applicantId}.pdf`);
+          try {
+            const url = await getDownloadURL(resumeRef);
+            resumeUrls[applicantId] = url;
+          } catch (error) {
+            console.error(`Failed to get URL for resume of ${applicantId}`, error);
+          }
+        }));
+        setResumeUrls(resumeUrls);
 
         // Extract job keywords from the job data
         const jobKeywords = data.keywords.reduce((acc, keyword) => {
@@ -196,12 +213,16 @@ export default function JobDetail({ params }) {
                 </div>
                 <div className="flex space-x-6">
                   <div className="w-1/2">
-                    <iframe
-                      src={`/Resume.pdf`}
-                      width="100%"
-                      height="920px"
-                      title="Resume"
-                    ></iframe>
+                    {resumeUrls[selectedApplicant._id] ? (
+                      <iframe
+                        src={resumeUrls[selectedApplicant._id]}
+                        width="100%"
+                        height="920px"
+                        title="Resume"
+                      ></iframe>
+                    ) : (
+                      <p>Loading resume...</p>
+                    )}
                   </div>
                   <div className="w-1/2">
                     <div className="text-center mb-4">
