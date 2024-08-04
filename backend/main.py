@@ -41,6 +41,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
 # classes for MongoDB
 class User(Document):
     devpost: str
@@ -431,109 +435,109 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
 
 
 
-@app.post("/cloneAndProcess")
-async def processor(request: Request, background_tasks: BackgroundTasks):
-    body = await request.json()
-    repo_url = body['repoUrl']
-    background_tasks.add_task(clone_and_process, repo_url)
-    return {"message": "Cloning and processing started in the background."}
+# @app.post("/cloneAndProcess")
+# async def processor(request: Request, background_tasks: BackgroundTasks):
+#     body = await request.json()
+#     repo_url = body['repoUrl']
+#     background_tasks.add_task(clone_and_process, repo_url)
+#     return {"message": "Cloning and processing started in the background."}
 
 
-async def clone_and_process(repo_url: str):
-    try:
-        # Create a unique temporary directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            repo_dir = Path(temp_dir) / 'tempRepo'
+# async def clone_and_process(repo_url: str):
+#     try:
+#         # Create a unique temporary directory
+#         with tempfile.TemporaryDirectory() as temp_dir:
+#             repo_dir = Path(temp_dir) / 'tempRepo'
 
-            # Clone the repository
-            print('Cloning...')
-            Repo.clone_from(repo_url, repo_dir)
+#             # Clone the repository
+#             print('Cloning...')
+#             Repo.clone_from(repo_url, repo_dir)
 
-            # List all files and folders recursively
-            files = list_files(repo_dir)
+#             # List all files and folders recursively
+#             files = list_files(repo_dir)
             
-            print('files', files)
+#             print('files', files)
 
-            # Get combined content of all relevant files
-            combined_content = get_combined_file_contents(files)
+#             # Get combined content of all relevant files
+#             combined_content = get_combined_file_contents(files)
 
-            result = await run(combined_content)
-            print(result)
+#             result = await run(combined_content)
+#             print(result)
 
-            document_id = await store_result_in_mongodb(repo_url, result)
-            print(f"Stored in MongoDB with ID: {document_id}")
+#             document_id = await store_result_in_mongodb(repo_url, result)
+#             print(f"Stored in MongoDB with ID: {document_id}")
 
-        print({"success": True, "combinedContent": combined_content})
+#         print({"success": True, "combinedContent": combined_content})
 
-    except Exception as e:
-        print(e)
-        # raise HTTPException(status_code=500, detail=str(e))'
-
-
+#     except Exception as e:
+#         print(e)
+#         # raise HTTPException(status_code=500, detail=str(e))'
 
 
-# @app.get("/begin-processing/{user_id}/{job_id}")
-# async def begin_processing(user_id: str, job_id: str):
-    try:
-        # Convert the string user_id and job_id to ObjectId
-        user_object_id = ObjectId(user_id)
-        job_object_id = ObjectId(job_id)
+
+
+# # @app.get("/begin-processing/{user_id}/{job_id}")
+# # async def begin_processing(user_id: str, job_id: str):
+#     try:
+#         # Convert the string user_id and job_id to ObjectId
+#         user_object_id = ObjectId(user_id)
+#         job_object_id = ObjectId(job_id)
         
-        # Fetch the user from the database
-        user = await User.get(user_object_id)
+#         # Fetch the user from the database
+#         user = await User.get(user_object_id)
 
-        if not user or not user.github_token:
-            raise HTTPException(status_code=404, detail="User not found or GitHub token missing")
+#         if not user or not user.github_token:
+#             raise HTTPException(status_code=404, detail="User not found or GitHub token missing")
 
-        # Fetch the job from the database
-        job = await Job.get(job_object_id)
+#         # Fetch the job from the database
+#         job = await Job.get(job_object_id)
 
-        if not job:
-            raise HTTPException(status_code=404, detail="Job not found")
+#         if not job:
+#             raise HTTPException(status_code=404, detail="Job not found")
 
-        # Make a request to the GitHub API
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                'https://api.github.com/user/repos',
-                headers={
-                    'Authorization': f'Bearer {user.github_token}',
-                    'Accept': 'application/vnd.github.v3+json'
-                },
-                params={
-                    'type': 'all',
-                    'sort': 'full_name',
-                    'per_page': 100
-                }
-            )
+#         # Make a request to the GitHub API
+#         async with httpx.AsyncClient() as client:
+#             response = await client.get(
+#                 'https://api.github.com/user/repos',
+#                 headers={
+#                     'Authorization': f'Bearer {user.github_token}',
+#                     'Accept': 'application/vnd.github.v3+json'
+#                 },
+#                 params={
+#                     'type': 'all',
+#                     'sort': 'full_name',
+#                     'per_page': 100
+#                 }
+#             )
 
-        if response.status_code == 401:
-            raise HTTPException(status_code=401, detail="GitHub authentication failed. Token may be invalid.")
+#         if response.status_code == 401:
+#             raise HTTPException(status_code=401, detail="GitHub authentication failed. Token may be invalid.")
 
-        response.raise_for_status()
+#         response.raise_for_status()
 
-        # Extract repository information from the GitHub API response
-        repos = [
-            {
-                "name": repo["name"],
-                "private": repo["private"],
-                "description": repo["description"],
-                "url": repo["html_url"]
-            }
-            for repo in response.json()
-        ]
+#         # Extract repository information from the GitHub API response
+#         repos = [
+#             {
+#                 "name": repo["name"],
+#                 "private": repo["private"],
+#                 "description": repo["description"],
+#                 "url": repo["html_url"]
+#             }
+#             for repo in response.json()
+#         ]
 
-        # Here you can add logic to process the repositories in the context of the job
-        # For now, we're just returning the repositories
+#         # Here you can add logic to process the repositories in the context of the job
+#         # For now, we're just returning the repositories
 
-        return {"user_id": str(user_object_id), "job_id": str(job_object_id), "repositories": repos}
+#         return {"user_id": str(user_object_id), "job_id": str(job_object_id), "repositories": repos}
 
-    except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid user ID or job ID format")
-    except HTTPException as http_exc:
-        raise http_exc
-    except Exception as e:
-        print(f"Error processing repositories: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+#     except InvalidId:
+#         raise HTTPException(status_code=400, detail="Invalid user ID or job ID format")
+#     except HTTPException as http_exc:
+#         raise http_exc
+#     except Exception as e:
+#         print(f"Error processing repositories: {str(e)}")
+#         raise HTTPException(status_code=500, detail="Internal server error")
 
 
 
