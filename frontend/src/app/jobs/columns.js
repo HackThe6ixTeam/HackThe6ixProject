@@ -23,6 +23,7 @@ export const columns = [
   {
     accessorKey: "applicants",
     header: "Applicants",
+    cell: info => info.getValue().length,
   },
   {
     accessorKey: "status",
