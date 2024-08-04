@@ -28,31 +28,11 @@ import axios from "axios";
 
 export const NavBarButtons = () => {
   const { user } = useUser();
+  const { userType, setUserType, devpost, setDevpost, github, setGithub, linkedin, setLinkedin } = useUserType();
   console.log(user);
-
 
   useEffect(() => {
     if (user) {
-      var axios = require("axios").default;
-
-      var options = {
-        method: 'POST',
-        url: 'https://dev-gs1yvl738qvui8hd.us.auth0.com/oauth/token',
-        headers: {'content-type': 'application/x-www-form-urlencoded'},
-        data: new URLSearchParams({
-          grant_type: 'client_credentials',
-          client_id: 'kLr1ysGmkn70cBVYn7KXu0Wzdsaodi2L',
-          client_secret: 'QVkoVH06f4kvfCfGrskA8XEE12SRvEo93p-OYxwbeoB_m9yIAMkcm6q6AHEPpOY6',
-          audience: 'https://dev-gs1yvl738qvui8hd.us.auth0.com/api/v2/'
-        })
-      };
-
-      axios.request(options).then(function (response) {
-        console.log(response.data);
-      }).catch(function (error) {
-        console.error(error);
-      });
-
       let config = {
         method: 'get',
         maxBodyLength: Infinity,
@@ -65,7 +45,17 @@ export const NavBarButtons = () => {
     
       axios.request(config)
       .then((response) => {
-        console.log(JSON.stringify(response.data));
+        const data = response.data;
+        console.log(data);
+
+        // Determine userType
+        const newUserType = data.user_metadata.account_type === "I'm looking for a job" ? 'jobSeeker' : 'hiringManager';
+        setUserType(newUserType);
+
+        // Set additional global variables
+        setDevpost(data.user_metadata.devpost);
+        setGithub(data.user_metadata.github);
+        setLinkedin(data.user_metadata.linkedin);
       })
       .catch((error) => {
         console.log(error);
@@ -73,10 +63,7 @@ export const NavBarButtons = () => {
     }
   }, [user]);
 
-  const pathname = usePathname()
-
-  const { userType, setUserType } = useUserType();
-
+  const pathname = usePathname();
 
   return (
     <header className="sticky top-0 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">

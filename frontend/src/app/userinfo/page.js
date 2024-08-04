@@ -9,6 +9,7 @@ import { FileText, X } from 'lucide-react'; // Assuming you have these icons
 import { Button } from '@/components/ui/button'; // Ensure correct import for Button
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useUserType } from '@/context/UserTypeContext';
 
 function bytesToMB(bytes) {
   let megabytes = bytes / 1024 / 1024;
@@ -17,9 +18,8 @@ function bytesToMB(bytes) {
 
 const UserInfo = () => {
   const { user, error, isLoading } = useUser();
-  const [devpost, setDevpost] = useState('');
-  const [github, setGithub] = useState('');
-  const [linkedin, setLinkedin] = useState('');
+  const { devpost, github, linkedin } = useUserType();
+  console.log(devpost, github, linkedin);
   const [resume, setResume] = useState(null);
   const [resumeText, setResumeText] = useState('');
   const [fileMetaData, setFileMetaData] = useState(null);
@@ -141,42 +141,11 @@ const UserInfo = () => {
             </div>
           )}
 
-          <div className="flex flex-col gap-4 my-8">
-            <div className="grid gap-2">
-              <Label htmlFor="email">Devpost</Label>
-              <Input 
-                type="url"
-                id="devpost"
-                value={devpost}
-                onChange={(e) => setDevpost(e.target.value)}
-                required
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">GitHub</Label>
-              <Input 
-                type="url"
-                id="github"
-                value={github}
-                onChange={(e) => setGithub(e.target.value)}
-                required                
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">LinkedIn</Label>
-              <Input 
-                type="url"
-                id="linkedin"
-                value={linkedin}
-                onChange={(e) => setLinkedin(e.target.value)}
-                required                
-              />
-            </div>
+          <div className='my-8'>
+            <Button type="submit" className='w-20'>
+              Submit
+            </Button>
           </div>
-
-          <Button type="submit" className='w-20'>
-            Submit
-          </Button>
         </form>
       </main>
     </div>
