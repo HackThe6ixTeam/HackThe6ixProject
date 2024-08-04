@@ -5,6 +5,8 @@ import { notFound } from 'next/navigation';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Tooltip } from 'recharts';
 import { getDownloadURL, ref } from 'firebase/storage';
 import { storage } from '../../../lib/firebase'; // Update the path if necessary
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Check, X } from 'lucide-react';
 
 const getUserById = async (id) => {
   try {
@@ -304,29 +306,29 @@ export default function JobDetail({ params }) {
     <div className='w-full flex flex-row justify-center'>
       <div className="mt-4">
         {selectedApplicant ? (
-          <div>
-            <button
-              onClick={() => setSelectedApplicant(null)}
-              className="mb-4 p-2 bg-red-500 text-white rounded"
-            >
-              X
-            </button>
-            <div>
-              <h2 className="text-4xl font-bold mb-4 text-center">{selectedApplicant.user.name}</h2>
-              <div className="flex justify-center space-x-4 mb-8">
-                <button
-                  onClick={() => handleAccept(selectedApplicant)}
-                  className="px-4 py-2 bg-green-500 text-white rounded"
+          <div className='w-full'>
+            <header className="px-20 sticky top-0 flex h-16 items-center gap-4 border-b bg-background">
+                <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
+                    <Button variant="outline" size="icon" onClick={() => setSelectedApplicant(null)}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <p
+                        className="text-foreground transition-colors hover:text-foreground whitespace-nowrap"
+                    >
+                    </p>
+                </nav>
+                <p
+                    className="text-foreground transition-colors hover:text-foreground whitespace-nowrap absolute left-1/2 transform -translate-x-1/2"
                 >
-                  Accept
-                </button>
-                <button
-                  onClick={() => handleReject(selectedApplicant)}
-                  className="px-4 py-2 bg-red-500 text-white rounded"
-                >
-                  Reject
-                </button>
-              </div>
+                    {selectedApplicant.user.name}
+                </p>
+                <div className="flex w-full items-center gap-4 md:ml-auto md:gap-2 lg:gap-4">
+                    <div className="ml-auto flex-1 sm:flex-initial flex flex-row gap-2">
+                    </div>
+                </div>
+            </header>
+            
+            <div className='w-screen p-20'>
               <div className="flex space-x-6">
                 <div className="w-1/2">
                   {resumeUrls[selectedApplicant._id] ? (
@@ -364,8 +366,19 @@ export default function JobDetail({ params }) {
                       <Tooltip />
                     </RadarChart>
                   </div>
-                  <div>
-                    <h3 className="font-semibold">{jobCompatibility && jobCompatibility?.explanation !== null ? `${jobCompatibility.explanation}` : 'Skill Compatibility...'}</h3>
+                  <div className="w-full flex justify-center space-x-4 mb-8">
+                    <button
+                      onClick={() => handleAccept(selectedApplicant)}
+                      className="px-4 py-2 bg-green-500 text-white rounded"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleReject(selectedApplicant)}
+                      className="px-4 py-2 bg-red-500 text-white rounded"
+                    >
+                      Reject
+                    </button>
                   </div>
                 </div>
               </div>

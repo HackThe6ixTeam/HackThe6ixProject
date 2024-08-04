@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { columns } from './columns';
 import { DataTable } from './data-table';
 import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 const fetchJobs = async () => {
   try {
@@ -50,10 +51,12 @@ export default function DemoPage() {
   return (
     <div className="container mx-auto py-10">
       {/* Header Container */}
-      <div className="flex items-center justify-between mb-4">
-        {/* Title/Header */}
-        <h1 className="text-2xl font-bold">Jobs</h1>
-      </div>
+        <div className="mx-auto grid w-full max-w-4xl">
+          <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Jobs</h1>
+          <p className="mt-6 text-xl leading-8 text-gray-700">Job&apos;s you&apos;ve posted will show up here.</p>
+        </div>
+
+        <Separator className='my-8'/>
 
       {/* Data Table */}
       <DataTable columns={columns} data={jobs} />
