@@ -24,6 +24,7 @@ const UserInfo = () => {
   const [resume, setResume] = useState(null);
   const [resumeText, setResumeText] = useState('');
   const [fileMetaData, setFileMetaData] = useState(null);
+  const [userId, setUserId] = useState(null); // State for storing userId
   const router = useRouter();
 
   const handleFileChange = async (event) => {
@@ -53,7 +54,7 @@ const UserInfo = () => {
       return;
     }
 
-    const userId = user.sub; // Use Auth0 user ID or another unique user identifier
+    const authUserId = user.sub; // Use Auth0 user ID or another unique user identifier
 
     const userInfo = { 
       devpost, 
@@ -70,17 +71,7 @@ const UserInfo = () => {
     console.log(userInfo);
 
     try {
-      // Upload resume to Firebase Storage
-      if (resume) {
-        const resumeRef = ref(storage, `resumes/${userId}.pdf`);
-        await uploadBytes(resumeRef, resume);
-        const downloadURL = await getDownloadURL(resumeRef);
-        console.log('Resume URL:', downloadURL);
-        
-        // You can store the downloadURL with the user's info if needed
-      }
-
-      // Submit user info to your API
+      // Submit user info to your API and get the userId
       const res = await fetch("/api/user", {
         method: "POST",
         headers: {
@@ -96,16 +87,27 @@ const UserInfo = () => {
       const data = await res.json();
       console.log("API Response:", data);
 
-      if (data.userId) {
+      if (data.userId) { // Use userId from the API response
+        setUserId(data.userId); // Store userId in state
         console.log("User ID:", data.userId);
-        
+
+        // Upload resume to Firebase Storage with userId as filename
+        if (resume) {
+          const resumeRef = ref(storage, `${data.userId}.pdf`);
+          await uploadBytes(resumeRef, resume);
+          const downloadURL = await getDownloadURL(resumeRef);
+          console.log('Resume URL:', downloadURL);
+          
+          // You can store the downloadURL with the user's info if needed
+        }
+
         // Store the userId in localStorage or in your app's state management system if needed
         localStorage.setItem('userId', data.userId);
-        
+
         // Redirect to /github auth page
         router.push('/github-auth');
       } else {
-        console.error("No user ID returned from API");
+        console.error("No userId returned from API");
       }
     } catch (error) {
       console.error("Error creating user:", error);
