@@ -19,6 +19,8 @@ import httpx
 from bson import ObjectId
 from bson.errors import InvalidId
 import instructor
+from pymongo import MongoClient
+import re
 
 load_dotenv()
 
@@ -29,10 +31,15 @@ async def lifespan(app: FastAPI):
     # Startup: Initialize the database connection
     client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
     await init_beanie(database=client.Hackthe6ix, document_models=[User, Job, Repository])
+
+    sync_client = MongoClient(os.getenv("MONGODB_URI"))
+    app.state.db = sync_client.Hackthe6ix
+    app.state.collection = app.state.db.repositories
     
     yield  # This is where the FastAPI app runs
     
     client.close()
+    sync_client.close()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -560,6 +567,81 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
 # async def begin_processing(request: Request):
 #     print("Beginning processing")
 #     return {"message": "Processing started in the background."}
+
+def split_resume(text: str) -> List[str]:
+    # Split by newlines and periods
+    splits = re.split(r'[\n.]+', text)
+    # Remove empty strings and strip whitespace
+    return [s.strip() for s in splits if s.strip()]
+
+
+@app.post("/search")
+async def search(request: Request):
+    body = await request.json()
+    resume_text = body['query']
+    print(f"Received resume text: {resume_text[:100]}...")  # Print first 100 characters
+
+    collection = request.app.state.collection
+
+    # Split the resume into sections
+    sections = split_resume(resume_text)
+    print(f"Number of sections: {len(sections)}")
+
+    matching_sections = 0
+    total_sections = len(sections)
+    # query contains all resume text
+    # for each sentence in the resume, get the embeddings and run the vector search pipeline on it
+    # count the sentene towards the final score if at least 3/5 of the results have a score > 1.0.
+    # retuen the percentage of sentences that meet this criteria
+
+    for section in sections:
+        if len(section.split()) < 3:  # Skip very short sections
+            total_sections -= 1
+            continue
+
+        query_embedding = generate_embeddings(section)
+
+        pipeline = [
+            {
+                "$search": {
+                    "index": "repodef",  # replace with your index name if different
+                    "knnBeta": {
+                        "vector": query_embedding,
+                        "path": "embeddings",
+                        "k": 5  # number of results to return
+                    }
+                }
+            },
+            {
+                "$project": {
+                    "score": { "$meta": "searchScore" }
+                }
+            }
+        ]
+
+        results = list(collection.aggregate(pipeline))
+
+        print(results)
+
+        high_score_count = sum(1 for result in results if result['score'] > 0.5)
+
+        # If at least 3 out of 5 results have a score > 1.0, count this section
+        if high_score_count >= 3:
+            matching_sections += 1
+
+    # Calculate the percentage of matching sections
+    match_percentage = (matching_sections / total_sections) * 100 if total_sections > 0 else 0
+
+    print(f"Matching sections: {matching_sections}")
+    print(f"Total sections: {total_sections}")
+    print(f"Match percentage: {match_percentage:.2f}%")
+
+    return {
+        "match_percentage": round(match_percentage, 2),
+        "matching_sections": matching_sections,
+        "total_sections": total_sections
+    }
+
 
 
 if __name__ == "__main__":
