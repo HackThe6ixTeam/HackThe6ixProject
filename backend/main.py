@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from git import Repo
 from pathlib import Path
 import shutil
+from sentence_transformers import SentenceTransformer
 import os
 import google.generativeai as genai
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,6 +21,8 @@ from bson.errors import InvalidId
 import instructor
 
 load_dotenv()
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -91,10 +94,15 @@ class Repository(Document):
     ind_file_summaries: List[FileSummary] = []
     skills: List[SkillInfo] = []
     tech_competence: Optional[TechCompetence] = None
+    embeddings: Optional[List[float]] = None
 
     class Settings:
         name = "repositories"
 
+
+def generate_embeddings(text: str) -> List[float]:
+    embedding = model.encode(text)
+    return embedding.tolist()
 
 # Initialize GoogleGenerativeAI with API key
 genai.configure(api_key='AIzaSyAEAh4mufNHAh_FiMwD_4nE8xng8Elll6w')
@@ -278,6 +286,8 @@ Evaluate how well the skills demonstrated in the repository match the job requir
             repo_document.ind_file_summaries = result.ind_file_summaries
             repo_document.skills = result.skills
             repo_document.tech_competence = result.tech_competence
+
+            repo_document.embeddings = generate_embeddings(result.summary)
 
             await repo_document.save()
             print(f"Updated repository document with analysis results")
