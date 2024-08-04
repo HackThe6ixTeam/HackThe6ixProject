@@ -413,6 +413,7 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
             for repo in repos:
                 await handle_repo(repo, str(user_object_id), str(job_object_id), user.github_token)
                 counter += 1
+                print(counter)
 
                 if counter == 5:
                     return {"message": "Dont 5", "total_repos": len(repos)}
