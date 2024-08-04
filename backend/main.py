@@ -254,6 +254,18 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
         print(result)
         print({"success": True})
 
+        repo_document = await Repository.get(PydanticObjectId(repo_id))
+        if repo_document:
+            repo_document.summary = result.summary
+            repo_document.ind_file_summaries = result.ind_file_summaries
+            repo_document.skills = result.skills
+            repo_document.tech_competence = result.tech_competence
+
+            await repo_document.save()
+            print(f"Updated repository document with analysis results")
+        else:
+            print(f"Repository document with ID {repo_id} not found")
+
 
             # take results from run (RepositoryAnalysis) and store in repo document as necessary
 
