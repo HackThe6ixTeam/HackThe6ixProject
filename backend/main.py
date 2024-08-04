@@ -17,6 +17,7 @@ from typing import List, Optional
 import httpx
 from bson import ObjectId
 from bson.errors import InvalidId
+import instructor
 
 load_dotenv()
 
@@ -93,10 +94,13 @@ class Repository(Document):
 
 # Initialize GoogleGenerativeAI with API key
 genai.configure(api_key='AIzaSyAEAh4mufNHAh_FiMwD_4nE8xng8Elll6w')
-
-async def init_db():
-    client = AsyncIOMotorClient(os.getenv("MONGODB_URI"))
-    await init_beanie(database=client.your_database_name, document_models=[User, Job, Repository])
+# gemini client
+client = instructor.from_gemini(
+    client=genai.GenerativeModel(
+        model_name="models/gemini-1.5-flash-latest",
+    ),
+    mode=instructor.Mode.GEMINI_JSON,
+)
 
 
 class CloneRequest(BaseModel):
@@ -147,51 +151,6 @@ async def store_result_in_mongodb(repo_url: str, summary: str):
     return str(repo.id)
 
 
-async def run(prompt: str) -> str:
-    model = genai.GenerativeModel('gemini-1.5-flash')
-    response = model.generate_content(prompt)
-    return response.text
-
-
-@app.post("/cloneAndProcess")
-async def processor(request: Request, background_tasks: BackgroundTasks):
-    body = await request.json()
-    repo_url = body['repoUrl']
-    background_tasks.add_task(clone_and_process, repo_url)
-    return {"message": "Cloning and processing started in the background."}
-
-
-async def clone_and_process(repo_url: str):
-    try:
-        # Create a unique temporary directory
-        with tempfile.TemporaryDirectory() as temp_dir:
-            repo_dir = Path(temp_dir) / 'tempRepo'
-
-            # Clone the repository
-            print('Cloning...')
-            Repo.clone_from(repo_url, repo_dir)
-
-            # List all files and folders recursively
-            files = list_files(repo_dir)
-            
-            print('files', files)
-
-            # Get combined content of all relevant files
-            combined_content = get_combined_file_contents(files)
-
-            result = await run(combined_content)
-            print(result)
-
-            document_id = await store_result_in_mongodb(repo_url, result)
-            print(f"Stored in MongoDB with ID: {document_id}")
-
-        print({"success": True, "combinedContent": combined_content})
-
-    except Exception as e:
-        print(e)
-        # raise HTTPException(status_code=500, detail=str(e))'
-
-
 async def create_repository_document(user_id: str, job_id: str, repo_url: str):
     try:
         new_repo = Repository(
@@ -206,19 +165,106 @@ async def create_repository_document(user_id: str, job_id: str, repo_url: str):
         raise
 
 
+
 class ProcessingRequest(BaseModel):
     user_id: str
     job_id: str
 
+class FileSummary(BaseModel):
+    """
+    Represents a summary of an individual file in the repository.
+    """
+    filename: str = Field(description="The name of the file.")
+    summary: str = Field(description="A technical and qualitative summary of the file's contents and purpose.")
 
+class SkillInfo(BaseModel):
+    """
+    Represents information about a specific skill identified in the repository.
+    """
+    name: str = Field(description="The name of the skill or technology employed by the user in this repository.")
+    summary: str = Field(description="A brief description of how this skill is demonstrated in the repository.")
+    score: float = Field(description="A score from 0 to 1 indicating the proficiency level in this skill based on the repository content.", ge=0, le=1)
+
+class TechCompetence(BaseModel):
+    """
+    Represents an overall assessment of technical competence based on the repository.
+    """
+    score: float = Field(description="An overall score from 0 to 1 indicating the general technical competence of the user demonstrated in this repository.", ge=0, le=1)
+    summary: str = Field(description="A brief summary of the overall technical competence demonstrated in this repository.")
+
+class RepositoryAnalysis(BaseModel):
+    """
+    Analyze the given repository and provide a structured summary of its contents,
+    identified skills, and an assessment of technical competence.
+    
+    Be thorough in your analysis, considering the complexity, quality, and variety of code in the repository.
+    Do not provide specific examples from the code to support your assessments where possible.
+    """
+    summary: str = Field(description="A comprehensive summary of the entire repository, including its main purpose, structure, and notable features.")
+    ind_file_summaries: List[FileSummary] = Field(description="Summaries of individual files in the repository.")
+    skills: List[SkillInfo] = Field(description="A list of skills or technologies demonstrated in the repository, along with assessments of proficiency.")
+    tech_competence: TechCompetence = Field(description="An overall assessment of the technical competence demonstrated in this repository.")
+
+
+# get LLM response, prompt needs to be a string of the combined content of all files
+async def run(prompt: str):
+    resp = client.messages.create(
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        response_model=RepositoryAnalysis,
+    )
+    return resp
+
+
+# handle cloning and analysis of repo
+async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
+    # first create repo document to store stuff
+
+    repo_id = await create_repository_document(str(user_obj_id), str(job_obj_id), repo["url"])
+
+    # then, clone the repo
+    try:
+        # Create a unique temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_dir = Path(temp_dir) / 'tempRepo'
+            auth_url = repo["url"].replace('https://', f'https://{access_token}@')
+
+            # Clone the repository
+            print('Cloning...')
+            Repo.clone_from(auth_url, repo_dir)
+
+            # get all the relevant files
+            files = list_files(repo_dir)
+
+            # Get combined content of all relevant files
+            prompt = get_combined_file_contents(files)
+            
+            # call run on the final string
+            result = run(prompt)
+
+            print(result)
+
+
+            # take results from run (RepositoryAnalysis) and store in repo document as necessary
+
+    except Exception as e:
+        print(f"Error cloning repository: {str(e)}")
+
+
+
+
+
+# this function begins the processing of repositories
 @app.post("/begin-processing")
 async def begin_processing(request: ProcessingRequest, background_tasks: BackgroundTasks):
     try:
         # Convert the string user_id and job_id to ObjectId
         user_object_id = ObjectId(request.user_id)
         job_object_id = ObjectId(request.job_id)
-
-        print(user_object_id, job_object_id)
         
         # Fetch the user from the database
         user = await User.get(user_object_id)
@@ -262,11 +308,16 @@ async def begin_processing(request: ProcessingRequest, background_tasks: Backgro
             }
             for repo in response.json()
         ]
+        print(repos)
 
         if repos:
             # Process only the first repository in the background
             first_repo = repos[0]
-            background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
+
+            # call background function that initiatives cloning + analysis function
+            background_tasks.add_task(handle_repo, first_repo, user_object_id, job_object_id, user.github_token)
+
+            # background_tasks.add_task(create_repository_document, request.user_id, request.job_id, first_repo["url"])
 
         return {"message": "Processing started for the first repository", "total_repos": len(repos)}
 
@@ -277,6 +328,51 @@ async def begin_processing(request: ProcessingRequest, background_tasks: Backgro
     except Exception as e:
         print(f"Error processing repositories: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+
+
+
+
+@app.post("/cloneAndProcess")
+async def processor(request: Request, background_tasks: BackgroundTasks):
+    body = await request.json()
+    repo_url = body['repoUrl']
+    background_tasks.add_task(clone_and_process, repo_url)
+    return {"message": "Cloning and processing started in the background."}
+
+
+async def clone_and_process(repo_url: str):
+    try:
+        # Create a unique temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo_dir = Path(temp_dir) / 'tempRepo'
+
+            # Clone the repository
+            print('Cloning...')
+            Repo.clone_from(repo_url, repo_dir)
+
+            # List all files and folders recursively
+            files = list_files(repo_dir)
+            
+            print('files', files)
+
+            # Get combined content of all relevant files
+            combined_content = get_combined_file_contents(files)
+
+            result = await run(combined_content)
+            print(result)
+
+            document_id = await store_result_in_mongodb(repo_url, result)
+            print(f"Stored in MongoDB with ID: {document_id}")
+
+        print({"success": True, "combinedContent": combined_content})
+
+    except Exception as e:
+        print(e)
+        # raise HTTPException(status_code=500, detail=str(e))'
+
+
 
 
 # @app.get("/begin-processing/{user_id}/{job_id}")
