@@ -331,8 +331,8 @@ async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
             # Add relevant skill scores
             for skill in repo.skills:
                 print(skill)
-                if skill.name.lower() in [k.lower() for k in keywords]:
-                    relevant_skills[skill.name.lower()].append(skill.score)
+                if skill.name in keywords:
+                    relevant_skills[skill.name].append(skill.score)
 
         print(relevant_skills)
 
