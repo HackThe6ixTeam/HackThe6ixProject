@@ -88,16 +88,66 @@ export default function JobDetail({ params }) {
     return <p className="p-4">Loading...</p>;
   }
 
-  // Handle accept and reject actions
-  const handleAccept = (applicant) => {
-    console.log(`Accepted: ${applicant.user.name}`);
-    // You can add additional logic here for accepting the applicant
+  const handleAccept = async (applicant) => {
+    try {
+      const response = await fetch('/api/jobs/update-applicant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: job._id,
+          applicantId: applicant._id,
+          action: 'accept',
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log(`Accepted: ${applicant.user.name}`);
+        setApplicantsDetails((prevDetails) =>
+          prevDetails.filter((app) => app._id !== applicant._id)
+        );
+        setSelectedApplicant(null);
+      } else {
+        console.error(data.error || 'Error accepting applicant');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
-
-  const handleReject = (applicant) => {
-    console.log(`Rejected: ${applicant.user.name}`);
-    // You can add additional logic here for rejecting the applicant
+  
+  const handleReject = async (applicant) => {
+    try {
+      const response = await fetch('/api/jobs/update-applicant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId: job._id,
+          applicantId: applicant._id,
+          action: 'reject',
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        console.log(`Rejected: ${applicant.user.name}`);
+        setApplicantsDetails((prevDetails) =>
+          prevDetails.filter((app) => app._id !== applicant._id)
+        );
+        setSelectedApplicant(null);
+      } else {
+        console.error(data.error || 'Error rejecting applicant');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
+  
 
   // Prepare data for the radar chart
   const radarData = Object.entries(jobKeywords).map(([key, value]) => ({
