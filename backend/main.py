@@ -181,7 +181,7 @@ class SkillInfo(BaseModel):
     """
     Represents information about a specific skill identified in the repository.
     """
-    name: str = Field(description="The name of the skill or technology employed by the user in this repository.")
+    name: str = Field(description="The name of the technology or framework employed by the user in this repository.")
     summary: str = Field(description="A brief description of how this skill is demonstrated in the repository.")
     score: float = Field(description="A score from 0 to 1 indicating the proficiency level in this skill based on the repository content.", ge=0, le=1)
 
@@ -202,7 +202,7 @@ class RepositoryAnalysis(BaseModel):
     """
     summary: str = Field(description="A comprehensive summary of the entire repository, including its main purpose, structure, and notable features.")
     ind_file_summaries: List[FileSummary] = Field(description="Summaries of individual files in the repository.")
-    skills: List[SkillInfo] = Field(description="A list of skills or technologies demonstrated in the repository, along with assessments of proficiency.")
+    skills: List[SkillInfo] = Field(description="A list of technologies and frameworks demonstrated in the repository, along with assessments of proficiency.")
     tech_competence: TechCompetence = Field(description="An overall assessment of the technical competence demonstrated in this repository.")
 
 
@@ -231,6 +231,12 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
     # then, clone the repo
     try:
         print("in try block")
+
+        job = await Job.get(PydanticObjectId(job_obj_id))
+        if not job:
+            raise ValueError(f"Job with ID {job_obj_id} not found")
+        job_description = job.description
+
         # Create a unique temporary directory
         with tempfile.TemporaryDirectory() as temp_dir:
             repo_dir = Path(temp_dir) / 'tempRepo'
@@ -246,13 +252,22 @@ async def handle_repo(repo, user_obj_id, job_obj_id, access_token):
             files = list_files(repo_dir)
 
             # Get combined content of all relevant files
-            prompt = get_combined_file_contents(files)
+            file_contents = get_combined_file_contents(files)
+
+            prompt = f"""Job Description:
+{job_description}
+
+Repository Contents:
+{file_contents}
+
+Please analyze the repository contents in the context of the given job description. 
+Evaluate how well the skills demonstrated in the repository match the job requirements.
+"""
             
             # call run on the final string
             result = await run(prompt)
 
         print(result)
-        print({"success": True})
 
         repo_document = await Repository.get(PydanticObjectId(repo_id))
         if repo_document:
