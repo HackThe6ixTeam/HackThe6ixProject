@@ -101,9 +101,9 @@ export default function JobDetail({ params }) {
           action: 'accept',
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log(`Accepted: ${applicant.user.name}`);
         setApplicantsDetails((prevDetails) =>
@@ -117,7 +117,7 @@ export default function JobDetail({ params }) {
       console.error('Error:', error);
     }
   };
-  
+
   const handleReject = async (applicant) => {
     try {
       const response = await fetch('/api/jobs/update-applicant', {
@@ -131,9 +131,9 @@ export default function JobDetail({ params }) {
           action: 'reject',
         }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
         console.log(`Rejected: ${applicant.user.name}`);
         setApplicantsDetails((prevDetails) =>
@@ -147,7 +147,6 @@ export default function JobDetail({ params }) {
       console.error('Error:', error);
     }
   };
-  
 
   // Prepare data for the radar chart
   const radarData = Object.entries(jobKeywords).map(([key, value]) => ({
@@ -184,26 +183,8 @@ export default function JobDetail({ params }) {
             <div>
               <button onClick={() => setSelectedApplicant(null)} className="mb-4 p-2 bg-red-500 text-white rounded">X</button>
               <div>
-                <h2 className="text-2xl font-bold mb-4">{selectedApplicant.user.name}</h2>
-                <p><strong>Email:</strong> {selectedApplicant.user.email}</p>
-                <p><strong>Github:</strong> {selectedApplicant.github}</p>
-                <p><strong>Devpost:</strong> {selectedApplicant.devpost}</p>
-                <p><strong>LinkedIn:</strong> {selectedApplicant.linkedin}</p>
-                <div className="mb-6">
-                  <h3 className="text-xl font-bold mb-4">Job Keywords</h3>
-                  <RadarChart outerRadius={90} width={730} height={250} data={radarData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="skill" />
-                    <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                    <Radar name="Job Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                    <Tooltip />
-                  </RadarChart>
-                  <div className="mt-6">
-                    <h3 className="text-xl font-bold mt-6 mb-4">Git Data Summary</h3>
-                    <p>{gitData.summary}</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4 mt-6">
+                <h2 className="text-4xl font-bold mb-4 text-center">{selectedApplicant.user.name}</h2>
+                <div className="flex justify-center space-x-4 mb-8">
                   <button
                     onClick={() => handleAccept(selectedApplicant)}
                     className="px-4 py-2 bg-green-500 text-white rounded"
@@ -217,38 +198,66 @@ export default function JobDetail({ params }) {
                     Reject
                   </button>
                 </div>
+                <div className="flex space-x-6">
+                  <div className="w-1/2">
+                    <iframe
+                      src={`/Resume.pdf`}
+                      width="100%"
+                      height="920px"
+                      title="Resume"
+                    ></iframe>
+                  </div>
+                  <div className="w-1/2">
+                  <div className="text-center mb-4">
+  <div className="inline-block border rounded p-4 m-2">
+    <h3 className="text-xl font-bold">50% ATS Match</h3>
+  </div>
+  <div className="inline-block border rounded p-4 m-2">
+    <h3 className="text-xl font-bold">40% Verified Data</h3>
+  </div>
+</div>
+
+                    <div className="flex justify-center">
+                      <RadarChart outerRadius={150} width={600} height={600} data={radarData}>
+                        <PolarGrid />
+                        <PolarAngleAxis dataKey="skill" />
+                        <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                        <Radar name="Job Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                        <Tooltip />
+                      </RadarChart>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
             <div>
-              <div>
-                {applicantsDetails && applicantsDetails.length > 0 ? (
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Github</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Devpost</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
+              {applicantsDetails && applicantsDetails.length > 0 ? (
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Github</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Devpost</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">LinkedIn</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {applicantsDetails.map((applicant, index) => (
+                      <tr key={index} className="cursor-pointer" onClick={() => setSelectedApplicant(applicant)}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{applicant.user.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.user.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.github || 'N/A'}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.devpost}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.linkedin}</td>
                       </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {applicantsDetails.map((applicant, index) => (
-                        <tr key={index} className="cursor-pointer" onClick={() => setSelectedApplicant(applicant)}>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{applicant.user.name}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.user.email}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.github || 'N/A'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.devpost}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.linkedin}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <p>No applicants listed.</p>
-                )}
-              </div>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p>No applicants listed.</p>
+              )}
             </div>
           )}
         </div>
