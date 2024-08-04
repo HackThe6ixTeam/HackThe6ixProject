@@ -395,7 +395,7 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
                 },
                 params={
                     'type': 'all',
-                    'sort': 'full_name',
+                    'sort': 'updated',
                     'per_page': 100
                 }
             )
@@ -560,3 +560,8 @@ async def begin_processing(request: ProcessingRequest): #, background_tasks: Bac
 # async def begin_processing(request: Request):
 #     print("Beginning processing")
 #     return {"message": "Processing started in the background."}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8003, workers=1)
