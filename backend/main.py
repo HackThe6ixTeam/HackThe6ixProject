@@ -113,7 +113,7 @@ class CloneRequest(BaseModel):
 
 def should_process_folder(path: str) -> bool:
     irrelevant_folders = [
-        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite', 'data'
+        'node_modules', 'public', '.vscode', '.git', 'dist', 'build', 'coverage', 'logs', 'temp', 'tmp', 'cache', '.vite', 'data', 'lstm_lrp'
     ]
     modified_path = path.split('tempRepo')[-1] if 'tempRepo' in path else path
     return not any(folder in modified_path for folder in irrelevant_folders)
