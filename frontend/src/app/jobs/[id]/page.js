@@ -241,31 +241,27 @@ export default function JobDetail({ params }) {
     : [];
 
   return (
-    <div className="p-6 md:p-8 lg:p-12">
-      <h1 className="text-3xl font-bold mb-6">{job.job}</h1>
-      <div className="flex space-x-6 mb-6">
-        <button
-          className={`py-3 px-6 border-b-4 ${selectedTab === 'description' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}
-          onClick={() => setSelectedTab('description')}
-        >
-          Description
-        </button>
-        <button
-          className={`py-3 px-6 border-b-4 ${selectedTab === 'applicants' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}
-          onClick={() => setSelectedTab('applicants')}
-        >
-          Applicants
-        </button>
-      </div>
-
-      {selectedTab === 'description' && (
-        <div className="mt-4">
-          <p>{job.description || 'No description available.'}</p>
+    <div className="p-6 md:p-8 lg:p-12 flex justify-center">
+      <div className="w-full max-w-4xl">
+        <h1 className="text-3xl font-bold mb-6">{job.job}</h1>
+        <div className="flex space-x-6 mb-6">
+          <button
+            className={`py-3 px-6 border-b-4 ${selectedTab === 'description' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}
+            onClick={() => setSelectedTab('description')}
+          >
+            Description
+          </button>
+          <button
+            className={`py-3 px-6 border-b-4 ${selectedTab === 'applicants' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}
+            onClick={() => setSelectedTab('applicants')}
+          >
+            Applicants
+          </button>
         </div>
       )}
       {selectedTab === 'applicants' && (
         <div className="mt-4">
-          {selectedApplicant ? (
+          {selectedApplicant && (
             <div>
               <button onClick={() => setSelectedApplicant(null)} className="mb-4 p-2 bg-red-500 text-white rounded">X</button>
               <div>
@@ -312,15 +308,109 @@ export default function JobDetail({ params }) {
                         <h3 className="text-xl font-bold">{jobCompatibility.relevance_score !== null ? `${jobCompatibility.relevance_score}% Skill Compatibility` : 'Skill Compatibility...'}</h3>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
-                    <div className="flex justify-center">
-                      <RadarChart outerRadius={150} width={600} height={600} data={radarData}>
-                        <PolarGrid />
-                        <PolarAngleAxis dataKey="skill" />
-                        <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                        <Radar name="Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                        <Tooltip />
-                      </RadarChart>
+        {selectedTab === 'description' && (
+          <div className="mt-4">
+            <p>
+              MongoDB is at the forefront of transforming industries and empowering developers to create groundbreaking applications. With the data management software market expected to grow from $94 billion in 2023 to approximately $153 billion by 2027, MongoDB is driving innovation as the leading developer data platform and the first database provider to IPO in over 20 years.
+            </p>
+            <h2 className="text-xl font-bold mt-4">Why MongoDB?</h2>
+            <ul className="list-disc ml-6 mt-2">
+              <li><strong>Innovative Culture:</strong> Collaborate with full-time engineers and contribute to production-level code.</li>
+              <li><strong>Real Impact:</strong> Work on meaningful projects that shape our products and impact millions of users.</li>
+              <li><strong>Dynamic Learning:</strong> Gain hands-on experience and learn standard development methodologies.</li>
+            </ul>
+            <h2 className="text-xl font-bold mt-4">What We’re Looking For:</h2>
+            <ul className="list-disc ml-6 mt-2">
+              <li><strong>Educational Background:</strong> Pursuing a Bachelor’s or Master’s degree in Computer Science, Computer Engineering, or a related field.</li>
+              <li><strong>Technical Skills:</strong> Proficiency in data structures, algorithms, and software design. Fluent in one of the following programming languages: Java, Python, Go, C++, JavaScript, Node.js, or a comparable object-oriented language.</li>
+              <li><strong>Availability:</strong> Minimum of one semester remaining after the internship (Graduation between Winter 2025 and Spring 2026).</li>
+              <li><strong>Work Authorization:</strong> Must have full Canadian working rights.</li>
+            </ul>
+            <h2 className="text-xl font-bold mt-4">Our Teams and Opportunities:</h2>
+            <ul className="list-disc ml-6 mt-2">
+              <li><strong>Developer Productivity:</strong> Work on enhancing our performance benchmarking system and collaborate with engineers globally to improve our products' performance.</li>
+              <li><strong>Replicated Storage Services:</strong> Contribute to developing algorithms for data storage, managing transactional access, and working on server components and replication systems.</li>
+              <li><strong>Storage Engines:</strong> Join the team working on WiredTiger, our open-source storage engine, to develop production-level code and collaborate with a diverse, globally distributed team.</li>
+              <li><strong>App Modernisation & Integration:</strong> Engage in full-stack projects focusing on data migration, code modernization, and AI-driven insights with technologies like Typescript, Java, Go, and NodeJS.</li>
+            </ul>
+            <h2 className="text-xl font-bold mt-4">What You’ll Experience at MongoDB:</h2>
+            <ul className="list-disc ml-6 mt-2">
+              <li><strong>Supportive Environment:</strong> Personalized mentorship, career coaching, and a focus on work-life harmony.</li>
+              <li><strong>Vibrant Community:</strong> Connect with a community of interns, participate in social events, and enjoy local activities.</li>
+              <li><strong>Career Growth:</strong> Potential to receive a full-time offer at the end of your internship.</li>
+            </ul>
+            <p className="mt-4">
+              Our internships are full-time (40 hours/week) for 10 consecutive weeks, running from December to February. MongoDB is committed to providing accommodations for individuals with disabilities during the application and interview process. If you need assistance, please inform your Early Talent Recruiter.
+            </p>
+          </div>
+        )}
+
+        {selectedTab === 'applicants' && (
+          <div className="mt-4">
+            {selectedApplicant ? (
+              <div>
+                <button
+                  onClick={() => setSelectedApplicant(null)}
+                  className="mb-4 p-2 bg-red-500 text-white rounded"
+                >
+                  X
+                </button>
+                <div>
+                  <h2 className="text-4xl font-bold mb-4 text-center">{selectedApplicant.user.name}</h2>
+                  <div className="flex justify-center space-x-4 mb-8">
+                    <button
+                      onClick={() => handleAccept(selectedApplicant)}
+                      className="px-4 py-2 bg-green-500 text-white rounded"
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleReject(selectedApplicant)}
+                      className="px-4 py-2 bg-red-500 text-white rounded"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                  <div className="flex space-x-6">
+                    <div className="w-1/2">
+                      {resumeUrls[selectedApplicant._id] ? (
+                        <iframe
+                          src={resumeUrls[selectedApplicant._id]}
+                          width="100%"
+                          height="920px"
+                          title="Resume"
+                        ></iframe>
+                      ) : (
+                        <p>Loading resume...</p>
+                      )}
+                    </div>
+                    <div className="w-1/2">
+                      <div className="text-center mb-4">
+                        <div className="inline-block border rounded p-4 m-2">
+                          <h3 className="text-xl font-bold">
+                            {atsScore !== null ? `${atsScore}% ATS Match` : 'Calculating ATS Match...'}
+                          </h3>
+                        </div>
+                        <div className="inline-block border rounded p-4 m-2">
+                          <h3 className="text-xl font-bold">40% Verified Data</h3>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-center">
+                        <RadarChart outerRadius={150} width={600} height={600} data={radarData}>
+                          <PolarGrid />
+                          <PolarAngleAxis dataKey="skill" />
+                          <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                          <Radar name="Skills" dataKey="level" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                          <Tooltip />
+                        </RadarChart>
+                      </div>
                     </div>
 
                     <div>
@@ -329,7 +419,6 @@ export default function JobDetail({ params }) {
                   </div>
                 </div>
               </div>
-            </div>
           ) : (
             <div>
               {applicantsDetails && applicantsDetails.length > 0 ? (
@@ -345,23 +434,50 @@ export default function JobDetail({ params }) {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {applicantsDetails.map((applicant, index) => (
-                      <tr key={index} className="cursor-pointer" onClick={() => setSelectedApplicant(applicant)}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{applicant.user.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.user.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.github || 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.devpost}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{applicant.linkedin}</td>
+                      <tr
+                        key={index}
+                        className="cursor-pointer"
+                        onClick={() => setSelectedApplicant(applicant)}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {applicant.user.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {applicant.user.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {applicant.github ? (
+                            <a href={applicant.github} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                              Github
+                            </a>
+                          ) : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {applicant.devpost ? (
+                            <a href={applicant.devpost} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                              Devpost
+                            </a>
+                          ) : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {applicant.linkedin ? (
+                            <a href={applicant.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                              Linkdin
+                            </a>
+                          ) : 'N/A'}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <p>No applicants listed.</p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+                  <p>No applicants listed.</p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
