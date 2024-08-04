@@ -21,12 +21,22 @@ const getUserById = async (id) => {
   }
 };
 
+// Calculate ATS score based on keywords and resume text
+const calculateATSScore = (keywords, resumeText) => {
+  const resumeTextLower = resumeText.toLowerCase();
+  const matchedKeywordsCount = Object.keys(keywords).filter(keyword =>
+    resumeTextLower.includes(keyword.toLowerCase())
+  ).length;
+  return matchedKeywordsCount * 10;
+};
+
 export default function JobDetail({ params }) {
   const { id } = params;
   const [job, setJob] = useState(null);
   const [selectedTab, setSelectedTab] = useState('description');
   const [applicantsDetails, setApplicantsDetails] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [atsScore, setAtsScore] = useState(null);
 
   // Define gitData
   const gitData = {
@@ -69,6 +79,7 @@ export default function JobDetail({ params }) {
         const data = await response.json();
         setJob(data);
 
+        // Fetch applicants details
         const applicantsData = await Promise.all(
           data.applicants.map(async (applicantId) => {
             const userData = await getUserById(applicantId);
@@ -76,6 +87,13 @@ export default function JobDetail({ params }) {
           })
         );
         setApplicantsDetails(applicantsData);
+
+        // Calculate ATS score if there is a selected applicant
+        if (data.applicants.length > 0) {
+          const resumeText = applicantsData[0].resumeText || ''; // Assuming we take the first applicant for ATS scoring
+          const score = calculateATSScore(jobKeywords, resumeText);
+          setAtsScore(score);
+        }
       } catch (error) {
         notFound();
       }
@@ -208,14 +226,14 @@ export default function JobDetail({ params }) {
                     ></iframe>
                   </div>
                   <div className="w-1/2">
-                  <div className="text-center mb-4">
-  <div className="inline-block border rounded p-4 m-2">
-    <h3 className="text-xl font-bold">50% ATS Match</h3>
-  </div>
-  <div className="inline-block border rounded p-4 m-2">
-    <h3 className="text-xl font-bold">40% Verified Data</h3>
-  </div>
-</div>
+                    <div className="text-center mb-4">
+                      <div className="inline-block border rounded p-4 m-2">
+                        <h3 className="text-xl font-bold">{atsScore !== null ? `${atsScore}% ATS Match` : 'Calculating ATS Match...'}</h3>
+                      </div>
+                      <div className="inline-block border rounded p-4 m-2">
+                        <h3 className="text-xl font-bold">40% Verified Data</h3>
+                      </div>
+                    </div>
 
                     <div className="flex justify-center">
                       <RadarChart outerRadius={150} width={600} height={600} data={radarData}>
