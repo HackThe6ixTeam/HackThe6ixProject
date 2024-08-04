@@ -169,7 +169,6 @@ async def create_repository_document(user_id: str, job_id: str, repo_url: str):
         raise
 
 
-
 class ProcessingRequest(BaseModel):
     user_id: str
     job_id: str
@@ -293,7 +292,7 @@ Evaluate how well the skills demonstrated in the repository match the job requir
 
 
 @app.get("/spider-and-tech")
-async def calc_spider_score_and_tech_comp(request: Request):
+async def calc_spider_score_and_tech_comp(request: ProcessingRequest):
     try:
         # Get user_id and job_id from request body
         # body = await request.json()
